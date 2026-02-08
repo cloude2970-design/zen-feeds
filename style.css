@@ -49,17 +49,18 @@ h1 {
     border-radius: 12px;
     overflow: hidden;
     transition: transform 0.3s ease;
+    position: relative;
+    margin-bottom: 2rem;
 }
 
 .post-image-link {
     display: block;
-    overflow: hidden;
+    width: 100%;
 }
 
 .post-image {
     width: 100%;
-    height: 500px;
-    object-fit: cover;
+    height: auto;
     display: block;
     transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -69,34 +70,37 @@ h1 {
 }
 
 .post-content {
-    padding: 2rem;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 3rem 2rem 2rem 2rem;
+    background: linear-gradient(transparent, rgba(0,0,0,0.8));
+    color: #fff;
+    pointer-events: none;
 }
 
 .post-date {
     font-size: 0.8rem;
-    color: var(--muted);
+    color: rgba(255,255,255,0.7);
     text-transform: uppercase;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
 }
 
 .post-title {
     font-family: 'Playfair Display', serif;
-    font-size: 2rem;
-    margin: 0 0 1rem 0;
+    font-size: 1.8rem;
+    margin: 0 0 0.5rem 0;
 }
 
 .post-summary {
-    color: var(--muted);
-    font-size: 1.1rem;
-    margin-bottom: 2rem;
+    color: rgba(255,255,255,0.9);
+    font-size: 1rem;
+    margin-bottom: 0;
 }
 
 .read-more {
-    color: var(--accent);
-    text-decoration: none;
-    font-weight: 600;
-    border-bottom: 1px solid var(--accent);
-    padding-bottom: 2px;
+    display: none;
 }
 
 .modal {

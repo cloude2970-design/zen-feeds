@@ -55,7 +55,6 @@
                         <div class="post-date">${post.date} &bull; by ${post.author}</div>
                         <h2 class="post-title">${post.title}</h2>
                         <p class="post-summary">${post.summary}</p>
-                        <a href="javascript:void(0)" class="read-more" onclick="openArticle('${post.id}')">Read Article</a>
                     </div>
                 </article>
             `).join('');
@@ -68,7 +67,7 @@
 
             // Format article text with paragraphs
             const formattedBody = `
-                <div class="post-date">${post.date} &bull; by ${post.author}</div>
+                <div class="post-date" style="color: var(--muted);">${post.date} &bull; by ${post.author}</div>
                 <h1 style="font-family: 'Playfair Display', serif; margin-top: 1rem;">${post.title}</h1>
                 <img src="${post.url}" style="width: 100%; border-radius: 8px; margin-bottom: 2rem;">
                 ${post.article.split('\n').filter(p => p.trim()).map(p => `<p>${p}</p>`).join('')}

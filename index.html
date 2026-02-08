@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zen Feeds | Daily Mindful Moments</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Zen Feeds</h1>
+            <p class="subtitle">Daily Mindful Moments</p>
+        </header>
+
+        <main id="feed" class="feed">
+            <!-- Posts will be loaded here -->
+        </main>
+    </div>
+
+    <div id="modal" class="modal">
+        <div class="modal-close" onclick="closeModal()">&times;</div>
+        <div class="modal-content">
+            <div id="modal-body" class="article-body"></div>
+        </div>
+    </div>
+
+    <script>
+        let feedsData = {};
+
+        async function loadFeeds() {
+            try {
+                const response = await fetch('feeds.json');
+                feedsData = await response.json();
+                renderFeed();
+            } catch (error) {
+                console.error('Error loading feeds:', error);
+            }
+        }
+
+        function renderFeed() {
+            const container = document.getElementById('feed');
+            // Sort by ID or date if needed (assuming keys are IDs)
+            const posts = Object.values(feedsData).reverse();
+
+            container.innerHTML = posts.map(post => `
+                <article class="post">
+                    <div class="post-image-link" onclick="openArticle('${post.id}')">
+                        <img src="${post.url}" class="post-image" alt="${post.title}" loading="lazy">
+                    </div>
+                    <div class="post-content">
+                        <div class="post-date">${post.date} &bull; by ${post.author}</div>
+                        <h2 class="post-title">${post.title}</h2>
+                        <p class="post-summary">${post.summary}</p>
+                        <a href="javascript:void(0)" class="read-more" onclick="openArticle('${post.id}')">Read Article</a>
+                    </div>
+                </article>
+            `).join('');
+        }
+
+        function openArticle(id) {
+            const post = feedsData[id];
+            const modal = document.getElementById('modal');
+            const body = document.getElementById('modal-body');
+
+            // Format article text with paragraphs
+            const formattedBody = `
+                <div class="post-date">${post.date} &bull; by ${post.author}</div>
+                <h1 style="font-family: 'Playfair Display', serif; margin-top: 1rem;">${post.title}</h1>
+                <img src="${post.url}" style="width: 100%; border-radius: 8px; margin-bottom: 2rem;">
+                ${post.article.split('\n').filter(p => p.trim()).map(p => `<p>${p}</p>`).join('')}
+            `;
+
+            body.innerHTML = formattedBody;
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('modal');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        loadFeeds();
+    </script>
+</body>
+</html>

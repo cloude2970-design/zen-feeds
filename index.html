@@ -39,7 +39,7 @@
         let feedsData = {};
         let allPosts = [];
         let displayedCount = 0;
-        const POSTS_PER_LOAD = 5;
+        const POSTS_PER_LOAD = 6;
         let isLoading = false;
 
         async function loadFeeds() {
@@ -48,6 +48,7 @@
                 feedsData = await response.json();
                 allPosts = Object.values(feedsData).reverse();
                 displayedCount = 0;
+                document.getElementById('feed').innerHTML = '';
                 renderMorePosts();
                 setupInfiniteScroll();
                 setupBackToTop();
@@ -57,18 +58,21 @@
         }
 
         function renderMorePosts() {
-            if (isLoading || displayedCount >= allPosts.length) return;
+            if (isLoading) return;
             isLoading = true;
             
             const container = document.getElementById('feed');
-            const nextPosts = allPosts.slice(displayedCount, displayedCount + POSTS_PER_LOAD);
             
-            nextPosts.forEach(post => {
+            // Infinite loop: wrap around when we reach the end
+            for (let i = 0; i < POSTS_PER_LOAD; i++) {
+                const postIndex = (displayedCount + i) % allPosts.length;
+                const post = allPosts[postIndex];
+                
                 const article = document.createElement('article');
                 article.className = 'post';
                 article.innerHTML = `
                     <div class="post-image-link" onclick="openArticle('${post.id}')">
-                        <img src="${post.url}" class="post-image" alt="${post.title}" loading="lazy">
+                        <img src="${post.url}" class="post-image" alt="${post.title}" loading="lazy" onerror="this.style.background='#ddd'">
                     </div>
                     <div class="post-content">
                         <div class="post-date">${post.date} &bull; by ${post.author}</div>
@@ -77,9 +81,9 @@
                     </div>
                 `;
                 container.appendChild(article);
-            });
+            }
             
-            displayedCount += nextPosts.length;
+            displayedCount += POSTS_PER_LOAD;
             isLoading = false;
         }
 

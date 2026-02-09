@@ -46,7 +46,23 @@ h1 {
 
 @media (max-width: 500px) {
     .feed {
-        column-count: 1;
+        column-count: 2;
+        column-gap: 0.5rem;
+    }
+    .container {
+        padding: 1rem;
+    }
+    .post-content {
+        padding: 1.5rem 0.5rem 0.5rem 0.5rem;
+    }
+    .post-title {
+        font-size: 0.9rem;
+    }
+    .post-summary {
+        display: none;
+    }
+    .post-date {
+        font-size: 0.7rem;
     }
 }
 

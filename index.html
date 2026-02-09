@@ -39,15 +39,19 @@
         let feedsData = {};
         let allPosts = [];
         let displayedCount = 0;
-        const POSTS_PER_LOAD = 6;
+        const POSTS_PER_LOAD = 12;
         let isLoading = false;
+        let reachedEnd = false;
 
         async function loadFeeds() {
             try {
                 const response = await fetch('feeds.json');
                 feedsData = await response.json();
-                allPosts = Object.values(feedsData).reverse();
+                allPosts = Object.values(feedsData);
+                // Shuffle for variety
+                allPosts.sort(() => Math.random() - 0.5);
                 displayedCount = 0;
+                reachedEnd = false;
                 document.getElementById('feed').innerHTML = '';
                 renderMorePosts();
                 setupInfiniteScroll();
@@ -57,25 +61,37 @@
             }
         }
 
+        function handleImageError(img) {
+            // Remove the entire post card if image fails
+            const post = img.closest('.post');
+            if (post) post.remove();
+        }
+
         function renderMorePosts() {
-            if (isLoading) return;
+            if (isLoading || reachedEnd) return;
             isLoading = true;
             
             const container = document.getElementById('feed');
+            const remaining = allPosts.length - displayedCount;
+            const toLoad = Math.min(POSTS_PER_LOAD, remaining);
             
-            // Infinite loop: wrap around when we reach the end
-            for (let i = 0; i < POSTS_PER_LOAD; i++) {
-                const postIndex = (displayedCount + i) % allPosts.length;
-                const post = allPosts[postIndex];
+            if (toLoad <= 0) {
+                reachedEnd = true;
+                isLoading = false;
+                return;
+            }
+            
+            for (let i = 0; i < toLoad; i++) {
+                const post = allPosts[displayedCount + i];
                 
                 const article = document.createElement('article');
                 article.className = 'post';
                 article.innerHTML = `
-                    <div class="post-image-link" onclick="openArticle('${post.id}')">
-                        <img src="${post.url}" class="post-image" alt="${post.title}" loading="lazy" onerror="this.style.background='#ddd'">
+                    <div class="post-image-link">
+                        <img src="${post.url}" class="post-image" alt="${post.title}" loading="lazy" onerror="handleImageError(this)">
                     </div>
                     <div class="post-content">
-                        <div class="post-date">${post.date} &bull; by ${post.author}</div>
+                        <div class="post-date">by ${post.author}</div>
                         <h2 class="post-title">${post.title}</h2>
                         <p class="post-summary">${post.summary}</p>
                     </div>
@@ -83,20 +99,20 @@
                 container.appendChild(article);
             }
             
-            displayedCount += POSTS_PER_LOAD;
+            displayedCount += toLoad;
             isLoading = false;
         }
 
         function setupInfiniteScroll() {
             window.addEventListener('scroll', () => {
-                if (isLoading) return;
+                if (isLoading || reachedEnd) return;
                 
                 const scrollTop = window.scrollY || document.documentElement.scrollTop;
                 const windowHeight = window.innerHeight;
                 const docHeight = document.documentElement.scrollHeight;
                 
-                // Load more when within 300px of bottom
-                if (scrollTop + windowHeight >= docHeight - 300) {
+                // Load more when within 500px of bottom
+                if (scrollTop + windowHeight >= docHeight - 500) {
                     renderMorePosts();
                 }
             });
@@ -115,30 +131,6 @@
 
         function scrollToTop() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        function openArticle(id) {
-            const post = feedsData[id];
-            const modal = document.getElementById('modal');
-            const body = document.getElementById('modal-body');
-
-            // Format article text with paragraphs
-            const formattedBody = `
-                <div class="post-date" style="color: var(--muted);">${post.date} &bull; by ${post.author}</div>
-                <h1 style="font-family: 'Playfair Display', serif; margin-top: 1rem;">${post.title}</h1>
-                <img src="${post.url}" style="width: 100%; border-radius: 8px; margin-bottom: 2rem;">
-                ${post.article.split('\n').filter(p => p.trim()).map(p => `<p>${p}</p>`).join('')}
-            `;
-
-            body.innerHTML = formattedBody;
-            modal.style.display = 'block';
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeModal() {
-            const modal = document.getElementById('modal');
-            modal.style.display = 'none';
-            document.body.style.overflow = 'auto';
         }
 
         loadFeeds();

@@ -28,26 +28,45 @@
         </div>
     </div>
 
+    <!-- Back to Top Button -->
+    <button id="back-to-top" class="back-to-top" onclick="scrollToTop()" aria-label="Back to top">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="18 15 12 9 6 15"></polyline>
+        </svg>
+    </button>
+
     <script>
         let feedsData = {};
+        let allPosts = [];
+        let displayedCount = 0;
+        const POSTS_PER_LOAD = 5;
+        let isLoading = false;
 
         async function loadFeeds() {
             try {
                 const response = await fetch('feeds.json');
                 feedsData = await response.json();
-                renderFeed();
+                allPosts = Object.values(feedsData).reverse();
+                displayedCount = 0;
+                renderMorePosts();
+                setupInfiniteScroll();
+                setupBackToTop();
             } catch (error) {
                 console.error('Error loading feeds:', error);
             }
         }
 
-        function renderFeed() {
+        function renderMorePosts() {
+            if (isLoading || displayedCount >= allPosts.length) return;
+            isLoading = true;
+            
             const container = document.getElementById('feed');
-            // Sort by ID or date if needed (assuming keys are IDs)
-            const posts = Object.values(feedsData).reverse();
-
-            container.innerHTML = posts.map(post => `
-                <article class="post">
+            const nextPosts = allPosts.slice(displayedCount, displayedCount + POSTS_PER_LOAD);
+            
+            nextPosts.forEach(post => {
+                const article = document.createElement('article');
+                article.className = 'post';
+                article.innerHTML = `
                     <div class="post-image-link" onclick="openArticle('${post.id}')">
                         <img src="${post.url}" class="post-image" alt="${post.title}" loading="lazy">
                     </div>
@@ -56,8 +75,42 @@
                         <h2 class="post-title">${post.title}</h2>
                         <p class="post-summary">${post.summary}</p>
                     </div>
-                </article>
-            `).join('');
+                `;
+                container.appendChild(article);
+            });
+            
+            displayedCount += nextPosts.length;
+            isLoading = false;
+        }
+
+        function setupInfiniteScroll() {
+            window.addEventListener('scroll', () => {
+                if (isLoading) return;
+                
+                const scrollTop = window.scrollY || document.documentElement.scrollTop;
+                const windowHeight = window.innerHeight;
+                const docHeight = document.documentElement.scrollHeight;
+                
+                // Load more when within 300px of bottom
+                if (scrollTop + windowHeight >= docHeight - 300) {
+                    renderMorePosts();
+                }
+            });
+        }
+
+        function setupBackToTop() {
+            const btn = document.getElementById('back-to-top');
+            window.addEventListener('scroll', () => {
+                if (window.scrollY > 500) {
+                    btn.classList.add('visible');
+                } else {
+                    btn.classList.remove('visible');
+                }
+            });
+        }
+
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function openArticle(id) {

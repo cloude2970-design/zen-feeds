@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Zen Feeds | Daily Mindful Moments</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,11 +21,17 @@
         </main>
     </div>
 
-    <div id="modal" class="modal">
-        <div class="modal-close" onclick="closeModal()">&times;</div>
-        <div class="modal-content">
-            <div id="modal-body" class="article-body"></div>
+    <!-- Fullscreen Gallery -->
+    <div id="gallery" class="gallery">
+        <div class="gallery-close" onclick="closeGallery()">×</div>
+        <div class="gallery-counter"><span id="gallery-current">1</span> / <span id="gallery-total">1</span></div>
+        <div class="gallery-track" id="gallery-track"></div>
+        <div class="gallery-info" id="gallery-info">
+            <div class="gallery-title"></div>
+            <div class="gallery-author"></div>
         </div>
+        <div class="gallery-nav gallery-prev" onclick="galleryPrev()">‹</div>
+        <div class="gallery-nav gallery-next" onclick="galleryNext()">›</div>
     </div>
 
     <!-- Back to Top Button -->
@@ -38,33 +44,54 @@
     <script>
         let feedsData = {};
         let allPosts = [];
+        let displayedPosts = []; // Track actually displayed (not errored) posts
         let displayedCount = 0;
         const POSTS_PER_LOAD = 12;
         let isLoading = false;
         let reachedEnd = false;
+
+        // Gallery state
+        let galleryIndex = 0;
+        let touchStartX = 0;
+        let touchEndX = 0;
 
         async function loadFeeds() {
             try {
                 const response = await fetch('feeds.json');
                 feedsData = await response.json();
                 allPosts = Object.values(feedsData);
-                // Shuffle for variety
                 allPosts.sort(() => Math.random() - 0.5);
                 displayedCount = 0;
+                displayedPosts = [];
                 reachedEnd = false;
                 document.getElementById('feed').innerHTML = '';
                 renderMorePosts();
                 setupInfiniteScroll();
                 setupBackToTop();
+                setupGalleryTouch();
             } catch (error) {
                 console.error('Error loading feeds:', error);
             }
         }
 
         function handleImageError(img) {
-            // Remove the entire post card if image fails
             const post = img.closest('.post');
-            if (post) post.remove();
+            if (post) {
+                const id = post.dataset.id;
+                displayedPosts = displayedPosts.filter(p => p.id !== id);
+                post.remove();
+            }
+        }
+
+        function handleImageLoad(img) {
+            const post = img.closest('.post');
+            if (post) {
+                const id = post.dataset.id;
+                const postData = allPosts.find(p => p.id === id);
+                if (postData && !displayedPosts.find(p => p.id === id)) {
+                    displayedPosts.push(postData);
+                }
+            }
         }
 
         function renderMorePosts() {
@@ -86,9 +113,12 @@
                 
                 const article = document.createElement('article');
                 article.className = 'post';
+                article.dataset.id = post.id;
+                article.onclick = () => openGallery(post.id);
                 article.innerHTML = `
                     <div class="post-image-link">
-                        <img src="${post.url}" class="post-image" alt="${post.title}" loading="lazy" onerror="handleImageError(this)">
+                        <img src="${post.url}" class="post-image" alt="${post.title}" loading="lazy" 
+                             onerror="handleImageError(this)" onload="handleImageLoad(this)">
                     </div>
                     <div class="post-content">
                         <div class="post-date">by ${post.author}</div>
@@ -103,6 +133,91 @@
             isLoading = false;
         }
 
+        // Gallery functions
+        function openGallery(id) {
+            const idx = displayedPosts.findIndex(p => p.id === id);
+            if (idx === -1) return;
+            
+            galleryIndex = idx;
+            const gallery = document.getElementById('gallery');
+            const track = document.getElementById('gallery-track');
+            
+            // Build gallery slides
+            track.innerHTML = displayedPosts.map((post, i) => `
+                <div class="gallery-slide" data-index="${i}">
+                    <img src="${post.url}" alt="${post.title}">
+                </div>
+            `).join('');
+            
+            document.getElementById('gallery-total').textContent = displayedPosts.length;
+            
+            gallery.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            updateGalleryPosition(false);
+        }
+
+        function closeGallery() {
+            document.getElementById('gallery').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        function updateGalleryPosition(animate = true) {
+            const track = document.getElementById('gallery-track');
+            track.style.transition = animate ? 'transform 0.3s ease' : 'none';
+            track.style.transform = `translateX(-${galleryIndex * 100}vw)`;
+            
+            document.getElementById('gallery-current').textContent = galleryIndex + 1;
+            
+            const post = displayedPosts[galleryIndex];
+            if (post) {
+                document.querySelector('.gallery-title').textContent = post.title;
+                document.querySelector('.gallery-author').textContent = `by ${post.author}`;
+            }
+        }
+
+        function galleryPrev() {
+            if (galleryIndex > 0) {
+                galleryIndex--;
+                updateGalleryPosition();
+            }
+        }
+
+        function galleryNext() {
+            if (galleryIndex < displayedPosts.length - 1) {
+                galleryIndex++;
+                updateGalleryPosition();
+            }
+        }
+
+        function setupGalleryTouch() {
+            const gallery = document.getElementById('gallery');
+            
+            gallery.addEventListener('touchstart', (e) => {
+                touchStartX = e.changedTouches[0].screenX;
+            }, { passive: true });
+            
+            gallery.addEventListener('touchend', (e) => {
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipe();
+            }, { passive: true });
+            
+            // Keyboard navigation
+            document.addEventListener('keydown', (e) => {
+                if (!gallery.classList.contains('active')) return;
+                if (e.key === 'ArrowLeft') galleryPrev();
+                if (e.key === 'ArrowRight') galleryNext();
+                if (e.key === 'Escape') closeGallery();
+            });
+        }
+
+        function handleSwipe() {
+            const diff = touchStartX - touchEndX;
+            if (Math.abs(diff) > 50) {
+                if (diff > 0) galleryNext();
+                else galleryPrev();
+            }
+        }
+
         function setupInfiniteScroll() {
             window.addEventListener('scroll', () => {
                 if (isLoading || reachedEnd) return;
@@ -111,7 +226,6 @@
                 const windowHeight = window.innerHeight;
                 const docHeight = document.documentElement.scrollHeight;
                 
-                // Load more when within 500px of bottom
                 if (scrollTop + windowHeight >= docHeight - 500) {
                     renderMorePosts();
                 }

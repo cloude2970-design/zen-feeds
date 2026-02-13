@@ -16,6 +16,13 @@
             <p class="subtitle">Daily Mindful Moments</p>
         </header>
 
+        <nav class="category-tabs" id="category-tabs">
+            <button class="tab active" data-category="all">All</button>
+            <button class="tab" data-category="nature">🌿 Nature</button>
+            <button class="tab" data-category="food">🍵 Food</button>
+            <button class="tab" data-category="travel">🏔 Travel</button>
+        </nav>
+
         <main id="feed" class="feed">
             <!-- Posts will be loaded here -->
         </main>
@@ -44,11 +51,13 @@
     <script>
         let feedsData = {};
         let allPosts = [];
+        let filteredPosts = []; // Posts filtered by category
         let displayedPosts = []; // Track actually displayed (not errored) posts
         let displayedCount = 0;
         const POSTS_PER_LOAD = 12;
         let isLoading = false;
         let reachedEnd = false;
+        let currentCategory = 'all';
 
         // Gallery state
         let galleryIndex = 0;
@@ -61,17 +70,41 @@
                 feedsData = await response.json();
                 allPosts = Object.values(feedsData);
                 allPosts.sort(() => Math.random() - 0.5);
-                displayedCount = 0;
-                displayedPosts = [];
-                reachedEnd = false;
-                document.getElementById('feed').innerHTML = '';
-                renderMorePosts();
+                filterByCategory('all');
+                setupCategoryTabs();
                 setupInfiniteScroll();
                 setupBackToTop();
                 setupGalleryTouch();
             } catch (error) {
                 console.error('Error loading feeds:', error);
             }
+        }
+
+        function setupCategoryTabs() {
+            const tabs = document.querySelectorAll('.category-tabs .tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    filterByCategory(tab.dataset.category);
+                });
+            });
+        }
+
+        function filterByCategory(category) {
+            currentCategory = category;
+            if (category === 'all') {
+                filteredPosts = [...allPosts];
+            } else {
+                filteredPosts = allPosts.filter(post => post.category === category);
+            }
+            filteredPosts.sort(() => Math.random() - 0.5);
+            displayedCount = 0;
+            displayedPosts = [];
+            reachedEnd = false;
+            document.getElementById('feed').innerHTML = '';
+            renderMorePosts();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function handleImageError(img) {
@@ -99,7 +132,7 @@
             isLoading = true;
             
             const container = document.getElementById('feed');
-            const remaining = allPosts.length - displayedCount;
+            const remaining = filteredPosts.length - displayedCount;
             const toLoad = Math.min(POSTS_PER_LOAD, remaining);
             
             if (toLoad <= 0) {
@@ -109,7 +142,7 @@
             }
             
             for (let i = 0; i < toLoad; i++) {
-                const post = allPosts[displayedCount + i];
+                const post = filteredPosts[displayedCount + i];
                 
                 const article = document.createElement('article');
                 article.className = 'post';

@@ -37,8 +37,6 @@
             <div class="gallery-title"></div>
             <div class="gallery-author"></div>
         </div>
-        <div class="gallery-nav gallery-prev" onclick="galleryPrev()">‹</div>
-        <div class="gallery-nav gallery-next" onclick="galleryNext()">›</div>
     </div>
 
     <!-- Back to Top Button -->
@@ -61,8 +59,8 @@
 
         // Gallery state
         let galleryIndex = 0;
-        let touchStartX = 0;
-        let touchEndX = 0;
+        let touchStartY = 0;
+        let touchEndY = 0;
 
         async function loadFeeds() {
             try {
@@ -197,7 +195,7 @@
         function updateGalleryPosition(animate = true) {
             const track = document.getElementById('gallery-track');
             track.style.transition = animate ? 'transform 0.3s ease' : 'none';
-            track.style.transform = `translateX(-${galleryIndex * 100}vw)`;
+            track.style.transform = `translateY(-${galleryIndex * 100}vh)`;
             
             document.getElementById('gallery-current').textContent = galleryIndex + 1;
             
@@ -226,28 +224,28 @@
             const gallery = document.getElementById('gallery');
             
             gallery.addEventListener('touchstart', (e) => {
-                touchStartX = e.changedTouches[0].screenX;
+                touchStartY = e.changedTouches[0].screenY;
             }, { passive: true });
             
             gallery.addEventListener('touchend', (e) => {
-                touchEndX = e.changedTouches[0].screenX;
+                touchEndY = e.changedTouches[0].screenY;
                 handleSwipe();
             }, { passive: true });
             
-            // Keyboard navigation
+            // Keyboard navigation (up/down arrows)
             document.addEventListener('keydown', (e) => {
                 if (!gallery.classList.contains('active')) return;
-                if (e.key === 'ArrowLeft') galleryPrev();
-                if (e.key === 'ArrowRight') galleryNext();
+                if (e.key === 'ArrowUp') galleryPrev();
+                if (e.key === 'ArrowDown') galleryNext();
                 if (e.key === 'Escape') closeGallery();
             });
         }
 
         function handleSwipe() {
-            const diff = touchStartX - touchEndX;
+            const diff = touchStartY - touchEndY;
             if (Math.abs(diff) > 50) {
-                if (diff > 0) galleryNext();
-                else galleryPrev();
+                if (diff > 0) galleryNext();  // swipe up = next
+                else galleryPrev();            // swipe down = prev
             }
         }
 

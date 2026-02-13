@@ -59,8 +59,6 @@
 
         // Gallery state
         let galleryIndex = 0;
-        let touchStartY = 0;
-        let touchEndY = 0;
 
         async function loadFeeds() {
             try {
@@ -176,7 +174,7 @@
             // Build gallery slides
             track.innerHTML = displayedPosts.map((post, i) => `
                 <div class="gallery-slide" data-index="${i}">
-                    <img src="${post.url}" alt="${post.title}">
+                    <img src="${post.url}" alt="${post.title}" loading="${i < idx + 3 ? 'eager' : 'lazy'}">
                 </div>
             `).join('');
             
@@ -184,7 +182,12 @@
             
             gallery.classList.add('active');
             document.body.style.overflow = 'hidden';
-            updateGalleryPosition(false);
+            
+            // Scroll to the selected image
+            requestAnimationFrame(() => {
+                track.scrollTop = idx * window.innerHeight;
+                updateGalleryInfo();
+            });
         }
 
         function closeGallery() {
@@ -192,13 +195,8 @@
             document.body.style.overflow = 'auto';
         }
 
-        function updateGalleryPosition(animate = true) {
-            const track = document.getElementById('gallery-track');
-            track.style.transition = animate ? 'transform 0.3s ease' : 'none';
-            track.style.transform = `translateY(-${galleryIndex * 100}vh)`;
-            
+        function updateGalleryInfo() {
             document.getElementById('gallery-current').textContent = galleryIndex + 1;
-            
             const post = displayedPosts[galleryIndex];
             if (post) {
                 document.querySelector('.gallery-title').textContent = post.title;
@@ -209,14 +207,18 @@
         function galleryPrev() {
             if (galleryIndex > 0) {
                 galleryIndex--;
-                updateGalleryPosition();
+                const track = document.getElementById('gallery-track');
+                track.scrollTo({ top: galleryIndex * window.innerHeight, behavior: 'smooth' });
+                updateGalleryInfo();
             }
         }
 
         function galleryNext() {
             if (galleryIndex < displayedPosts.length - 1) {
                 galleryIndex++;
-                updateGalleryPosition();
+                const track = document.getElementById('gallery-track');
+                track.scrollTo({ top: galleryIndex * window.innerHeight, behavior: 'smooth' });
+                updateGalleryInfo();
             }
             // Auto-load more when near the end
             if (galleryIndex >= displayedPosts.length - 3) {
@@ -276,14 +278,23 @@
 
         function setupGalleryTouch() {
             const gallery = document.getElementById('gallery');
+            const track = document.getElementById('gallery-track');
             
-            gallery.addEventListener('touchstart', (e) => {
-                touchStartY = e.changedTouches[0].screenY;
-            }, { passive: true });
-            
-            gallery.addEventListener('touchend', (e) => {
-                touchEndY = e.changedTouches[0].screenY;
-                handleSwipe();
+            // Use native scroll with scroll-snap - listen for scroll end to update index
+            let scrollTimeout;
+            track.addEventListener('scroll', () => {
+                clearTimeout(scrollTimeout);
+                scrollTimeout = setTimeout(() => {
+                    const newIndex = Math.round(track.scrollTop / window.innerHeight);
+                    if (newIndex !== galleryIndex) {
+                        galleryIndex = newIndex;
+                        updateGalleryInfo();
+                        // Auto-load more when near the end
+                        if (galleryIndex >= displayedPosts.length - 3) {
+                            loadMoreToGallery();
+                        }
+                    }
+                }, 100);
             }, { passive: true });
             
             // Keyboard navigation (up/down arrows)
@@ -293,14 +304,6 @@
                 if (e.key === 'ArrowDown') galleryNext();
                 if (e.key === 'Escape') closeGallery();
             });
-        }
-
-        function handleSwipe() {
-            const diff = touchStartY - touchEndY;
-            if (Math.abs(diff) > 50) {
-                if (diff > 0) galleryNext();  // swipe up = next
-                else galleryPrev();            // swipe down = prev
-            }
         }
 
         function setupInfiniteScroll() {

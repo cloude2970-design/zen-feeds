@@ -306,20 +306,28 @@ h1 {
 }
 
 .gallery-track {
-    display: flex;
-    flex-direction: column;
     width: 100%;
-    transition: transform 0.3s ease;
+    height: 100%;
+    overflow-y: scroll;
+    overflow-x: hidden;
+    scroll-snap-type: y mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.gallery-track::-webkit-scrollbar {
+    display: none;
 }
 
 .gallery-slide {
     width: 100vw;
     height: 100vh;
-    min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
     flex-shrink: 0;
 }
 

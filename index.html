@@ -218,6 +218,60 @@
                 galleryIndex++;
                 updateGalleryPosition();
             }
+            // Auto-load more when near the end
+            if (galleryIndex >= displayedPosts.length - 3) {
+                loadMoreToGallery();
+            }
+        }
+
+        function loadMoreToGallery() {
+            if (isLoading || reachedEnd) return;
+            
+            const remaining = filteredPosts.length - displayedCount;
+            if (remaining <= 0) {
+                reachedEnd = true;
+                return;
+            }
+            
+            isLoading = true;
+            const toLoad = Math.min(POSTS_PER_LOAD, remaining);
+            const track = document.getElementById('gallery-track');
+            const feedContainer = document.getElementById('feed');
+            
+            for (let i = 0; i < toLoad; i++) {
+                const post = filteredPosts[displayedCount + i];
+                
+                // Add to gallery
+                const slide = document.createElement('div');
+                slide.className = 'gallery-slide';
+                slide.dataset.index = displayedPosts.length;
+                slide.innerHTML = `<img src="${post.url}" alt="${post.title}">`;
+                track.appendChild(slide);
+                
+                // Add to main feed too
+                const article = document.createElement('article');
+                article.className = 'post';
+                article.dataset.id = post.id;
+                article.onclick = () => openGallery(post.id);
+                article.innerHTML = `
+                    <div class="post-image-link">
+                        <img src="${post.url}" class="post-image" alt="${post.title}" loading="lazy" 
+                             onerror="handleImageError(this)" onload="handleImageLoad(this)">
+                    </div>
+                    <div class="post-content">
+                        <div class="post-date">by ${post.author}</div>
+                        <h2 class="post-title">${post.title}</h2>
+                        <p class="post-summary">${post.summary}</p>
+                    </div>
+                `;
+                feedContainer.appendChild(article);
+                
+                displayedPosts.push(post);
+            }
+            
+            displayedCount += toLoad;
+            document.getElementById('gallery-total').textContent = displayedPosts.length;
+            isLoading = false;
         }
 
         function setupGalleryTouch() {

@@ -56,6 +56,30 @@
         .loading { padding: 40px; text-align: center; color: #999; }
         .error-msg { padding: 40px; text-align: center; color: #666; }
         
+        /* Zoom Transition Overlay */
+        .zoom-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0);
+            z-index: 999;
+            pointer-events: none;
+            transition: background 0.3s ease;
+        }
+        .zoom-overlay.active {
+            background: rgba(0,0,0,1);
+        }
+        .zoom-image {
+            position: fixed;
+            object-fit: cover;
+            border-radius: 8px;
+            transition: all 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+            z-index: 1001;
+        }
+        .zoom-image.expanded {
+            border-radius: 0;
+        }
+        
         /* Modal */
         .modal { 
             display: none; 
@@ -63,9 +87,12 @@
             top: 0; left: 0; 
             width: 100%; height: 100%; 
             background: #000; 
-            z-index: 1000; 
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.1s ease;
         }
         .modal.active { display: flex; flex-direction: column; }
+        .modal.visible { opacity: 1; }
         
         .modal-header {
             position: absolute;
@@ -78,7 +105,11 @@
             background: linear-gradient(to bottom, rgba(0,0,0,0.5), transparent);
             color: #fff;
             z-index: 10;
+            opacity: 0;
+            transition: opacity 0.3s ease 0.2s;
         }
+        .modal.visible .modal-header { opacity: 1; }
+        
         .close-btn { 
             background: none; border: none; color: #fff; 
             font-size: 28px; cursor: pointer; padding: 4px 12px; line-height: 1;
@@ -113,7 +144,11 @@
             padding-bottom: max(40px, env(safe-area-inset-bottom));
             background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
             color: #fff; text-align: center;
+            opacity: 0;
+            transition: opacity 0.3s ease 0.25s;
         }
+        .modal.visible .photo-info { opacity: 1; }
+        
         .photo-title { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 600; margin-bottom: 12px; }
         .photo-summary { font-size: 15px; font-style: italic; opacity: 0.85; line-height: 1.5; }
         
@@ -212,7 +247,11 @@
             z-index: 5;
             pointer-events: none;
             animation: bounce 2s infinite;
+            opacity: 0;
+            transition: opacity 0.3s ease 0.3s;
         }
+        .modal.visible .modal-swipe-hint { opacity: 1; }
+        
         @keyframes bounce {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-5px); }
@@ -232,6 +271,8 @@
     </div>
 
     <div class="grid" id="grid"><div class="loading">Loading...</div></div>
+
+    <div class="zoom-overlay" id="zoomOverlay"></div>
 
     <div class="modal" id="modal">
         <div class="modal-header">
@@ -253,6 +294,7 @@
         let articleStartIndex = 0;
         let postsPerLoad = 20;
         let currentPage = 0;
+        let isAnimating = false;
 
         async function init() {
             const grid = document.getElementById('grid');
@@ -301,7 +343,7 @@
             const html = batch.map((post, i) => {
                 const globalIndex = startIndex + i;
                 return `
-                <div class="item" onclick="openModal(${globalIndex})" data-index="${globalIndex}">
+                <div class="item" onclick="openModal(${globalIndex}, event)" data-index="${globalIndex}">
                     <img data-src="${post.url}" loading="lazy" onerror="this.style.display='none'" class="lazy-img">
                     <div class="item-info">
                         <div class="item-author">${post.author || ''}</div>
@@ -369,23 +411,81 @@
             });
         }
 
-        function openModal(index) {
+        function openModal(index, event) {
+            if (isAnimating) return;
+            isAnimating = true;
             currentIndex = index;
-            const modal = document.getElementById('modal');
-            const viewer = document.getElementById('viewer');
             
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
+            const post = displayedPosts[index];
+            const clickedItem = event ? event.currentTarget : document.querySelector(`.item[data-index="${index}"]`);
+            const clickedImg = clickedItem ? clickedItem.querySelector('img') : null;
             
-            // Preload nearby images
-            preloadNearbyImages(index);
+            // Get source image position
+            const rect = clickedImg ? clickedImg.getBoundingClientRect() : { left: window.innerWidth/2 - 100, top: window.innerHeight/2 - 100, width: 200, height: 200 };
             
-            renderViewer();
+            // Create zoom image
+            const zoomImg = document.createElement('img');
+            zoomImg.className = 'zoom-image';
+            zoomImg.src = post.url;
+            zoomImg.style.left = rect.left + 'px';
+            zoomImg.style.top = rect.top + 'px';
+            zoomImg.style.width = rect.width + 'px';
+            zoomImg.style.height = rect.height + 'px';
+            document.body.appendChild(zoomImg);
             
+            // Activate overlay
+            const overlay = document.getElementById('zoomOverlay');
+            overlay.style.pointerEvents = 'auto';
+            
+            // Calculate target position (centered, maintaining aspect ratio)
+            const screenW = window.innerWidth;
+            const screenH = window.innerHeight;
+            
+            // Force reflow for transition
+            zoomImg.offsetHeight;
+            
+            // Start animation
+            requestAnimationFrame(() => {
+                overlay.classList.add('active');
+                zoomImg.classList.add('expanded');
+                
+                // Center and scale
+                zoomImg.style.left = '0px';
+                zoomImg.style.top = '0px';
+                zoomImg.style.width = screenW + 'px';
+                zoomImg.style.height = screenH + 'px';
+                zoomImg.style.objectFit = 'contain';
+            });
+            
+            // After animation, show modal
             setTimeout(() => {
-                viewer.scrollLeft = index * viewer.clientWidth;
-            }, 50);
+                const modal = document.getElementById('modal');
+                const viewer = document.getElementById('viewer');
+                
+                // Preload nearby images
+                preloadNearbyImages(index);
+                renderViewer();
+                
+                modal.classList.add('active');
+                
+                // Position viewer correctly
+                requestAnimationFrame(() => {
+                    viewer.scrollLeft = index * viewer.clientWidth;
+                    modal.classList.add('visible');
+                    
+                    // Remove zoom elements
+                    setTimeout(() => {
+                        zoomImg.remove();
+                        overlay.classList.remove('active');
+                        overlay.style.pointerEvents = 'none';
+                        isAnimating = false;
+                    }, 100);
+                });
+                
+                document.body.style.overflow = 'hidden';
+            }, 350);
             
+            const viewer = document.getElementById('viewer');
             viewer.onscroll = () => {
                 const newIndex = Math.round(viewer.scrollLeft / viewer.clientWidth);
                 if (newIndex !== currentIndex) {
@@ -432,8 +532,13 @@
         }
 
         function closeModal() {
-            document.getElementById('modal').classList.remove('active');
-            document.body.style.overflow = '';
+            const modal = document.getElementById('modal');
+            modal.classList.remove('visible');
+            
+            setTimeout(() => {
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+            }, 150);
         }
 
         function openArticle() {
@@ -577,7 +682,7 @@
             const html = batch.map((post, i) => {
                 const globalIndex = startIndex + i;
                 return `
-                <div class="item" onclick="openModal(${globalIndex})" data-index="${globalIndex}">
+                <div class="item" onclick="openModal(${globalIndex}, event)" data-index="${globalIndex}">
                     <img data-src="${post.url}" loading="lazy" onerror="this.style.display='none'" class="lazy-img">
                     <div class="item-info">
                         <div class="item-author">${post.author || ''}</div>

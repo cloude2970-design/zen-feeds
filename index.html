@@ -248,8 +248,11 @@
     <script>
         let allPosts = [];
         let filteredPosts = [];
+        let displayedPosts = [];
         let currentIndex = 0;
         let articleStartIndex = 0;
+        let postsPerLoad = 20;
+        let currentPage = 0;
 
         async function init() {
             const grid = document.getElementById('grid');
@@ -258,9 +261,13 @@
                 if (!res.ok) throw new Error('HTTP ' + res.status);
                 const data = await res.json();
                 allPosts = Object.values(data);
-                allPosts.sort((a, b) => (b.score || 0) - (a.score || 0));
                 filteredPosts = [...allPosts];
-                renderGrid();
+                
+                // Initial render - only first batch
+                renderBatch();
+                
+                // Setup infinite scroll
+                setupInfiniteScroll();
             } catch (e) {
                 console.error(e);
                 grid.innerHTML = '<div class="error-msg">Failed to load. <button onclick="init()" style="margin-top:12px;padding:8px 16px;border:none;background:#333;color:#fff;border-radius:20px;cursor:pointer;">Retry</button></div>';
@@ -271,24 +278,95 @@
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             btn.classList.add('active');
             filteredPosts = category === 'all' ? [...allPosts] : allPosts.filter(p => p.category === category);
-            renderGrid();
+            currentPage = 0;
+            displayedPosts = [];
+            document.getElementById('grid').innerHTML = '';
+            renderBatch();
         }
 
-        function renderGrid() {
+        function renderBatch() {
             const grid = document.getElementById('grid');
-            if (filteredPosts.length === 0) {
+            const start = currentPage * postsPerLoad;
+            const end = Math.min(start + postsPerLoad, filteredPosts.length);
+            const batch = filteredPosts.slice(start, end);
+            
+            if (batch.length === 0 && currentPage === 0) {
                 grid.innerHTML = '<div class="error-msg">No posts</div>';
                 return;
             }
-            grid.innerHTML = filteredPosts.map((post, i) => `
-                <div class="item" onclick="openModal(${i})">
-                    <img src="${post.url}" loading="lazy" onerror="this.style.display='none'">
+            
+            const startIndex = displayedPosts.length;
+            displayedPosts = displayedPosts.concat(batch);
+            
+            const html = batch.map((post, i) => {
+                const globalIndex = startIndex + i;
+                return `
+                <div class="item" onclick="openModal(${globalIndex})" data-index="${globalIndex}">
+                    <img data-src="${post.url}" loading="lazy" onerror="this.style.display='none'" class="lazy-img">
                     <div class="item-info">
                         <div class="item-author">${post.author || ''}</div>
                         <div class="item-title">${post.title || ''}</div>
                     </div>
                 </div>
-            `).join('');
+            `}).join('');
+            
+            if (currentPage === 0) {
+                grid.innerHTML = html;
+            } else {
+                grid.insertAdjacentHTML('beforeend', html);
+            }
+            
+            // Trigger lazy load for new images
+            observeImages();
+            currentPage++;
+            
+            // Add sentinel for next batch
+            if (end < filteredPosts.length) {
+                addSentinel();
+            }
+        }
+
+        function addSentinel() {
+            const existing = document.querySelector('.load-more-sentinel');
+            if (existing) existing.remove();
+            
+            const sentinel = document.createElement('div');
+            sentinel.className = 'load-more-sentinel';
+            sentinel.style.cssText = 'height: 20px; grid-column: 1/-1;';
+            document.getElementById('grid').appendChild(sentinel);
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        observer.disconnect();
+                        renderBatch();
+                    }
+                });
+            }, { rootMargin: '100px' });
+            
+            observer.observe(sentinel);
+        }
+
+        function setupInfiniteScroll() {
+            // Initial image observer
+            observeImages();
+        }
+
+        function observeImages() {
+            const imgObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        img.src = img.dataset.src;
+                        img.classList.remove('lazy-img');
+                        imgObserver.unobserve(img);
+                    }
+                });
+            }, { rootMargin: '50px' });
+            
+            document.querySelectorAll('.lazy-img').forEach(img => {
+                imgObserver.observe(img);
+            });
         }
 
         function openModal(index) {
@@ -298,6 +376,9 @@
             
             modal.classList.add('active');
             document.body.style.overflow = 'hidden';
+            
+            // Preload nearby images
+            preloadNearbyImages(index);
             
             renderViewer();
             
@@ -310,13 +391,24 @@
                 if (newIndex !== currentIndex) {
                     currentIndex = newIndex;
                     updateDots();
+                    preloadNearbyImages(newIndex);
                 }
             };
         }
 
+        function preloadNearbyImages(centerIndex) {
+            const range = 2; // Preload 2 before and after
+            for (let i = centerIndex - range; i <= centerIndex + range; i++) {
+                if (i >= 0 && i < displayedPosts.length) {
+                    const img = new Image();
+                    img.src = displayedPosts[i].url;
+                }
+            }
+        }
+
         function renderViewer() {
             const viewer = document.getElementById('viewer');
-            viewer.innerHTML = filteredPosts.map((post, i) => `
+            viewer.innerHTML = displayedPosts.map((post, i) => `
                 <div class="photo-slide">
                     <img src="${post.url}" onerror="this.style.opacity='0.3'">
                     <div class="photo-info">
@@ -324,7 +416,7 @@
                         <div class="photo-summary">${post.summary || ''}</div>
                     </div>
                     <div class="nav-dots">
-                        ${filteredPosts.slice(0, Math.min(10, filteredPosts.length)).map((_, j) => 
+                        ${displayedPosts.slice(0, Math.min(10, displayedPosts.length)).map((_, j) => 
                             `<div class="nav-dot ${j === i ? 'active' : ''}"></div>`
                         ).join('')}
                     </div>
@@ -350,9 +442,9 @@
             
             // Build all articles as vertical scroll pages
             let html = '';
-            const total = filteredPosts.length;
+            const total = displayedPosts.length;
             
-            filteredPosts.forEach((post, i) => {
+            displayedPosts.forEach((post, i) => {
                 let tipsHtml = '';
                 if (post.article && post.article.tips && post.article.tips.length > 0) {
                     tipsHtml = '<div class="tips-box"><div class="tips-title">Tips</div><ul class="tips-list">' + 
@@ -396,7 +488,7 @@
             // Update current index on scroll
             view.onscroll = () => {
                 const newIndex = Math.round(view.scrollTop / window.innerHeight);
-                if (newIndex !== currentIndex && newIndex >= 0 && newIndex < filteredPosts.length) {
+                if (newIndex !== currentIndex && newIndex >= 0 && newIndex < displayedPosts.length) {
                     currentIndex = newIndex;
                 }
                 
@@ -437,7 +529,7 @@
             
             // Horizontal swipe for navigation
             if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
-                if (dx < 0 && currentIndex < filteredPosts.length - 1) currentIndex++;
+                if (dx < 0 && currentIndex < displayedPosts.length - 1) currentIndex++;
                 else if (dx > 0 && currentIndex > 0) currentIndex--;
                 viewer.scrollTo({ left: currentIndex * viewer.clientWidth, behavior: 'smooth' });
                 updateDots();
@@ -455,7 +547,7 @@
             
             const viewer = document.getElementById('viewer');
             if (e.key === 'Escape') closeModal();
-            else if (e.key === 'ArrowRight' && currentIndex < filteredPosts.length - 1) {
+            else if (e.key === 'ArrowRight' && currentIndex < displayedPosts.length - 1) {
                 currentIndex++;
                 viewer.scrollTo({ left: currentIndex * viewer.clientWidth, behavior: 'smooth' });
                 updateDots();

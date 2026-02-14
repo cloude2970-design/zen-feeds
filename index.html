@@ -485,11 +485,16 @@
                 view.scrollTo({ top: currentIndex * window.innerHeight, behavior: 'auto' });
             }, 50);
             
-            // Update current index on scroll
+            // Update current index on scroll and load more if needed
             view.onscroll = () => {
                 const newIndex = Math.round(view.scrollTop / window.innerHeight);
                 if (newIndex !== currentIndex && newIndex >= 0 && newIndex < displayedPosts.length) {
                     currentIndex = newIndex;
+                }
+                
+                // Load more posts when approaching the end of article view
+                if (currentIndex >= displayedPosts.length - 3 && currentPage * postsPerLoad < filteredPosts.length) {
+                    renderMoreForArticleView();
                 }
                 
                 // Hide hint after first scroll
@@ -504,6 +509,90 @@
         function closeArticle() {
             document.getElementById('articleView').classList.remove('active');
             document.body.style.overflow = '';
+        }
+
+        function renderMoreForArticleView() {
+            const view = document.getElementById('articleView');
+            const start = currentPage * postsPerLoad;
+            const end = Math.min(start + postsPerLoad, filteredPosts.length);
+            const batch = filteredPosts.slice(start, end);
+            
+            if (batch.length === 0) return;
+            
+            const startIndex = displayedPosts.length;
+            displayedPosts = displayedPosts.concat(batch);
+            currentPage++;
+            
+            // Add new article pages
+            const total = displayedPosts.length;
+            let html = '';
+            
+            batch.forEach((post, i) => {
+                const globalIndex = startIndex + i;
+                let tipsHtml = '';
+                if (post.article && post.article.tips && post.article.tips.length > 0) {
+                    tipsHtml = '<div class="tips-box"><div class="tips-title">Tips</div><ul class="tips-list">' + 
+                        post.article.tips.map(tip => `<li>${tip}</li>`).join('') + '</ul></div>';
+                }
+                
+                const articleText = post.article ? post.article.content.replace(/\n\n/g, '</p><p>') : post.summary || '';
+                const headline = post.article ? post.article.headline : post.title;
+                
+                html += `
+                    <div class="article-page" data-index="${globalIndex}">
+                        <div class="article-header">
+                            <button class="back-btn" onclick="closeArticle()">←</button>
+                            <span style="font-size: 16px; font-weight: 500;">${post.category || 'Article'}</span>
+                            <span class="nav-indicator">${globalIndex + 1} / ${total}</span>
+                        </div>
+                        <div class="article-hero">
+                            <img src="${post.url}" onerror="this.style.display='none'">
+                            <div class="article-hero-overlay">
+                                <div class="article-hero-title">${post.title || ''}</div>
+                            </div>
+                        </div>
+                        <div class="article-content-wrapper">
+                            <div class="article-headline">${headline}</div>
+                            <div class="article-body"><p>${articleText}</p></div>
+                            ${tipsHtml}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            // Insert before the swipe hint
+            const swipeHint = document.getElementById('swipeHint');
+            if (swipeHint) {
+                swipeHint.insertAdjacentHTML('beforebegin', html);
+            } else {
+                view.insertAdjacentHTML('beforeend', html);
+            }
+            
+            // Also update grid for consistency
+            renderBatchForGrid(batch, startIndex);
+        }
+
+        function renderBatchForGrid(batch, startIndex) {
+            const grid = document.getElementById('grid');
+            const html = batch.map((post, i) => {
+                const globalIndex = startIndex + i;
+                return `
+                <div class="item" onclick="openModal(${globalIndex})" data-index="${globalIndex}">
+                    <img data-src="${post.url}" loading="lazy" onerror="this.style.display='none'" class="lazy-img">
+                    <div class="item-info">
+                        <div class="item-author">${post.author || ''}</div>
+                        <div class="item-title">${post.title || ''}</div>
+                    </div>
+                </div>
+            `}).join('');
+            
+            const sentinel = document.querySelector('.load-more-sentinel');
+            if (sentinel) {
+                sentinel.insertAdjacentHTML('beforebegin', html);
+            } else {
+                grid.insertAdjacentHTML('beforeend', html);
+            }
+            observeImages();
         }
 
         // Touch swipe for modal (horizontal + vertical for article)

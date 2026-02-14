@@ -56,7 +56,7 @@
         .loading { padding: 40px; text-align: center; color: #999; }
         .error-msg { padding: 40px; text-align: center; color: #666; }
         
-        /* Zoom Transition Overlay */
+        /* Zoom Transition Overlay - Grid to Modal */
         .zoom-overlay {
             position: fixed;
             top: 0; left: 0;
@@ -80,6 +80,30 @@
             border-radius: 0;
         }
         
+        /* Transition - Modal to Article */
+        .article-transition-overlay {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: #fff;
+            z-index: 1099;
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.3s ease;
+        }
+        .article-transition-overlay.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .article-transition-image {
+            position: fixed;
+            object-fit: cover;
+            z-index: 1100;
+            transition: all 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+            border-radius: 0;
+        }
+        
         /* Modal */
         .modal { 
             display: none; 
@@ -93,6 +117,10 @@
         }
         .modal.active { display: flex; flex-direction: column; }
         .modal.visible { opacity: 1; }
+        .modal.to-article {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
         
         .modal-header {
             position: absolute;
@@ -109,6 +137,10 @@
             transition: opacity 0.3s ease 0.2s;
         }
         .modal.visible .modal-header { opacity: 1; }
+        .modal.to-article .modal-header {
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
         
         .close-btn { 
             background: none; border: none; color: #fff; 
@@ -148,6 +180,10 @@
             transition: opacity 0.3s ease 0.25s;
         }
         .modal.visible .photo-info { opacity: 1; }
+        .modal.to-article .photo-info {
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
         
         .photo-title { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 600; margin-bottom: 12px; }
         .photo-summary { font-size: 15px; font-style: italic; opacity: 0.85; line-height: 1.5; }
@@ -169,8 +205,17 @@
             overflow-y: auto;
             scroll-snap-type: y mandatory;
             display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
-        .article-view.active { display: block; }
+        .article-view.active { 
+            display: block; 
+            opacity: 1;
+        }
+        .article-view.preparing {
+            display: block;
+            opacity: 0;
+        }
         .article-view::-webkit-scrollbar { display: none; }
         
         .article-page {
@@ -179,6 +224,13 @@
             display: flex;
             flex-direction: column;
             background: #fff;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.4s ease 0.2s, transform 0.4s ease 0.2s;
+        }
+        .article-view.active .article-page {
+            opacity: 1;
+            transform: translateY(0);
         }
         
         .article-header { 
@@ -187,7 +239,15 @@
             border-bottom: 1px solid #eee; 
             display: flex; align-items: center; 
             z-index: 100;
+            opacity: 0;
+            transform: translateY(-10px);
+            transition: opacity 0.3s ease 0.3s, transform 0.3s ease 0.3s;
         }
+        .article-view.active .article-header {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
         .back-btn { font-size: 20px; background: none; border: none; cursor: pointer; padding: 4px; margin-right: 12px; }
         .nav-indicator { font-size: 13px; color: #999; margin-left: auto; }
         
@@ -213,12 +273,38 @@
             font-weight: 600;
         }
         
-        .article-content-wrapper { padding: 24px; max-width: 600px; margin: 0 auto; width: 100%; }
+        .article-content-wrapper { 
+            padding: 24px; 
+            max-width: 600px; 
+            margin: 0 auto; 
+            width: 100%;
+            opacity: 0;
+            transform: translateY(15px);
+            transition: opacity 0.4s ease 0.35s, transform 0.4s ease 0.35s;
+        }
+        .article-view.active .article-content-wrapper {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
         .article-headline { font-family: 'Playfair Display', serif; font-size: 24px; line-height: 1.3; margin-bottom: 20px; }
         .article-body { font-size: 16px; line-height: 1.8; color: #444; }
         .article-body p { margin-bottom: 16px; }
         
-        .tips-box { background: #f5f5f5; padding: 20px; border-radius: 12px; margin-top: 24px; }
+        .tips-box { 
+            background: #f5f5f5; 
+            padding: 20px; 
+            border-radius: 12px; 
+            margin-top: 24px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.4s ease 0.45s, transform 0.4s ease 0.45s;
+        }
+        .article-view.active .tips-box {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
         .tips-title { font-size: 12px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
         .tips-list { list-style: none; }
         .tips-list li { padding: 8px 0; padding-left: 20px; position: relative; font-size: 15px; color: #555; }
@@ -235,6 +321,11 @@
             font-size: 12px;
             z-index: 1200;
             pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease 0.5s;
+        }
+        .article-view.active .swipe-hint {
+            opacity: 1;
         }
         
         .modal-swipe-hint {
@@ -273,6 +364,7 @@
     <div class="grid" id="grid"><div class="loading">Loading...</div></div>
 
     <div class="zoom-overlay" id="zoomOverlay"></div>
+    <div class="article-transition-overlay" id="articleTransition"></div>
 
     <div class="modal" id="modal">
         <div class="modal-header">
@@ -305,10 +397,7 @@
                 allPosts = Object.values(data);
                 filteredPosts = [...allPosts];
                 
-                // Initial render - only first batch
                 renderBatch();
-                
-                // Setup infinite scroll
                 setupInfiniteScroll();
             } catch (e) {
                 console.error(e);
@@ -358,11 +447,9 @@
                 grid.insertAdjacentHTML('beforeend', html);
             }
             
-            // Trigger lazy load for new images
             observeImages();
             currentPage++;
             
-            // Add sentinel for next batch
             if (end < filteredPosts.length) {
                 addSentinel();
             }
@@ -390,7 +477,6 @@
         }
 
         function setupInfiniteScroll() {
-            // Initial image observer
             observeImages();
         }
 
@@ -420,10 +506,8 @@
             const clickedItem = event ? event.currentTarget : document.querySelector(`.item[data-index="${index}"]`);
             const clickedImg = clickedItem ? clickedItem.querySelector('img') : null;
             
-            // Get source image position
             const rect = clickedImg ? clickedImg.getBoundingClientRect() : { left: window.innerWidth/2 - 100, top: window.innerHeight/2 - 100, width: 200, height: 200 };
             
-            // Create zoom image
             const zoomImg = document.createElement('img');
             zoomImg.className = 'zoom-image';
             zoomImg.src = post.url;
@@ -433,23 +517,18 @@
             zoomImg.style.height = rect.height + 'px';
             document.body.appendChild(zoomImg);
             
-            // Activate overlay
             const overlay = document.getElementById('zoomOverlay');
             overlay.style.pointerEvents = 'auto';
             
-            // Calculate target position (centered, maintaining aspect ratio)
             const screenW = window.innerWidth;
             const screenH = window.innerHeight;
             
-            // Force reflow for transition
             zoomImg.offsetHeight;
             
-            // Start animation
             requestAnimationFrame(() => {
                 overlay.classList.add('active');
                 zoomImg.classList.add('expanded');
                 
-                // Center and scale
                 zoomImg.style.left = '0px';
                 zoomImg.style.top = '0px';
                 zoomImg.style.width = screenW + 'px';
@@ -457,23 +536,19 @@
                 zoomImg.style.objectFit = 'contain';
             });
             
-            // After animation, show modal
             setTimeout(() => {
                 const modal = document.getElementById('modal');
                 const viewer = document.getElementById('viewer');
                 
-                // Preload nearby images
                 preloadNearbyImages(index);
                 renderViewer();
                 
                 modal.classList.add('active');
                 
-                // Position viewer correctly
                 requestAnimationFrame(() => {
                     viewer.scrollLeft = index * viewer.clientWidth;
                     modal.classList.add('visible');
                     
-                    // Remove zoom elements
                     setTimeout(() => {
                         zoomImg.remove();
                         overlay.classList.remove('active');
@@ -497,7 +572,7 @@
         }
 
         function preloadNearbyImages(centerIndex) {
-            const range = 2; // Preload 2 before and after
+            const range = 2;
             for (let i = centerIndex - range; i <= centerIndex + range; i++) {
                 if (i >= 0 && i < displayedPosts.length) {
                     const img = new Image();
@@ -509,7 +584,7 @@
         function renderViewer() {
             const viewer = document.getElementById('viewer');
             viewer.innerHTML = displayedPosts.map((post, i) => `
-                <div class="photo-slide">
+                <div class="photo-slide" data-index="${i}">
                     <img src="${post.url}" onerror="this.style.opacity='0.3'">
                     <div class="photo-info">
                         <div class="photo-title">${post.title || ''}</div>
@@ -542,10 +617,72 @@
         }
 
         function openArticle() {
+            if (isAnimating) return;
+            isAnimating = true;
             articleStartIndex = currentIndex;
-            const view = document.getElementById('articleView');
             
-            // Build all articles as vertical scroll pages
+            const modal = document.getElementById('modal');
+            const view = document.getElementById('articleView');
+            const post = displayedPosts[currentIndex];
+            
+            // Get current image position from modal
+            const currentSlide = document.querySelector(`.photo-slide[data-index="${currentIndex}"]`);
+            const currentImg = currentSlide ? currentSlide.querySelector('img') : null;
+            const rect = currentImg ? currentImg.getBoundingClientRect() : { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight };
+            
+            // Create transition image
+            const transImg = document.createElement('img');
+            transImg.className = 'article-transition-image';
+            transImg.src = post.url;
+            transImg.style.left = rect.left + 'px';
+            transImg.style.top = rect.top + 'px';
+            transImg.style.width = rect.width + 'px';
+            transImg.style.height = rect.height + 'px';
+            document.body.appendChild(transImg);
+            
+            // Fade out modal
+            modal.classList.add('to-article');
+            
+            // Prepare article view
+            buildArticleView();
+            view.classList.add('preparing');
+            
+            // Calculate hero target position (33vh)
+            const heroHeight = Math.max(window.innerHeight * 0.33, 200);
+            
+            // Force reflow
+            transImg.offsetHeight;
+            
+            // Animate transition image to hero position
+            requestAnimationFrame(() => {
+                transImg.style.top = '0px';
+                transImg.style.left = '0px';
+                transImg.style.width = window.innerWidth + 'px';
+                transImg.style.height = heroHeight + 'px';
+            });
+            
+            // Show article view with slide up
+            setTimeout(() => {
+                modal.classList.remove('active', 'visible', 'to-article');
+                view.classList.remove('preparing');
+                view.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                
+                // Scroll to current article
+                view.scrollTo({ top: currentIndex * window.innerHeight, behavior: 'auto' });
+                
+                // Remove transition image after animation
+                setTimeout(() => {
+                    transImg.remove();
+                    isAnimating = false;
+                }, 400);
+            }, 300);
+            
+            setupArticleScroll();
+        }
+
+        function buildArticleView() {
+            const view = document.getElementById('articleView');
             let html = '';
             const total = displayedPosts.length;
             
@@ -582,27 +719,21 @@
             });
             
             view.innerHTML = html + '<div class="swipe-hint" id="swipeHint">↑ Swipe for next ↓</div>';
-            view.classList.add('active');
-            document.body.style.overflow = 'hidden';
+        }
+
+        function setupArticleScroll() {
+            const view = document.getElementById('articleView');
             
-            // Scroll to current article
-            setTimeout(() => {
-                view.scrollTo({ top: currentIndex * window.innerHeight, behavior: 'auto' });
-            }, 50);
-            
-            // Update current index on scroll and load more if needed
             view.onscroll = () => {
                 const newIndex = Math.round(view.scrollTop / window.innerHeight);
                 if (newIndex !== currentIndex && newIndex >= 0 && newIndex < displayedPosts.length) {
                     currentIndex = newIndex;
                 }
                 
-                // Load more posts when approaching the end of article view
                 if (currentIndex >= displayedPosts.length - 3 && currentPage * postsPerLoad < filteredPosts.length) {
                     renderMoreForArticleView();
                 }
                 
-                // Hide hint after first scroll
                 const hint = document.getElementById('swipeHint');
                 if (hint && view.scrollTop > 50) {
                     hint.style.opacity = '0';
@@ -612,7 +743,8 @@
         }
 
         function closeArticle() {
-            document.getElementById('articleView').classList.remove('active');
+            const view = document.getElementById('articleView');
+            view.classList.remove('active');
             document.body.style.overflow = '';
         }
 
@@ -628,7 +760,6 @@
             displayedPosts = displayedPosts.concat(batch);
             currentPage++;
             
-            // Add new article pages
             const total = displayedPosts.length;
             let html = '';
             
@@ -665,7 +796,6 @@
                 `;
             });
             
-            // Insert before the swipe hint
             const swipeHint = document.getElementById('swipeHint');
             if (swipeHint) {
                 swipeHint.insertAdjacentHTML('beforebegin', html);
@@ -673,7 +803,6 @@
                 view.insertAdjacentHTML('beforeend', html);
             }
             
-            // Also update grid for consistency
             renderBatchForGrid(batch, startIndex);
         }
 
@@ -700,7 +829,7 @@
             observeImages();
         }
 
-        // Touch swipe for modal (horizontal + vertical for article)
+        // Touch swipe for modal
         let startX, startY;
         const viewer = document.getElementById('viewer');
         
@@ -721,7 +850,7 @@
                 return;
             }
             
-            // Horizontal swipe for navigation
+            // Horizontal swipe
             if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
                 if (dx < 0 && currentIndex < displayedPosts.length - 1) currentIndex++;
                 else if (dx > 0 && currentIndex > 0) currentIndex--;

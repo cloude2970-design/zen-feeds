@@ -10,18 +10,8 @@
         body { font-family: 'Inter', sans-serif; background: #fafafa; color: #333; }
         
         .header { position: sticky; top: 0; background: #fff; padding: 16px 20px; border-bottom: 1px solid #eee; z-index: 100; }
-        .header-top { display: flex; justify-content: space-between; align-items: flex-start; }
         .header h1 { font-family: 'Playfair Display', serif; font-size: 22px; }
         .header p { font-size: 13px; color: #888; margin-top: 4px; }
-        .lang-switch { 
-            display: flex; gap: 4px; background: #f0f0f0; 
-            padding: 3px; border-radius: 16px; font-size: 12px;
-        }
-        .lang-btn { 
-            padding: 4px 10px; border: none; background: transparent; 
-            border-radius: 12px; cursor: pointer; font-weight: 500;
-        }
-        .lang-btn.active { background: #fff; color: #333; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
         .tabs { display: flex; gap: 8px; margin-top: 12px; overflow-x: auto; }
         .tab { padding: 6px 14px; border: none; background: #f0f0f0; border-radius: 20px; font-size: 13px; cursor: pointer; white-space: nowrap; }
         .tab.active { background: #333; color: #fff; }
@@ -231,30 +221,22 @@
 </head>
 <body>
     <div class="header">
-        <div class="header-top">
-            <div>
-                <h1>Zen Feeds</h1>
-                <p data-i18n="subtitle">Daily Mindful Moments</p>
-            </div>
-            <div class="lang-switch">
-                <button class="lang-btn active" onclick="setLang('en')">EN</button>
-                <button class="lang-btn" onclick="setLang('zh')">中</button>
-            </div>
-        </div>
+        <h1>Zen Feeds</h1>
+        <p>Daily Mindful Moments</p>
         <div class="tabs">
-            <button class="tab active" onclick="filter('all', this)" data-i18n="tabAll">All</button>
-            <button class="tab" onclick="filter('nature', this)" data-i18n="tabNature">Nature</button>
-            <button class="tab" onclick="filter('food', this)" data-i18n="tabFood">Food</button>
-            <button class="tab" onclick="filter('travel', this)" data-i18n="tabTravel">Travel</button>
+            <button class="tab active" onclick="filter('all', this)">All</button>
+            <button class="tab" onclick="filter('nature', this)">Nature</button>
+            <button class="tab" onclick="filter('food', this)">Food</button>
+            <button class="tab" onclick="filter('travel', this)">Travel</button>
         </div>
     </div>
 
-    <div class="grid" id="grid"><div class="loading" data-i18n="loading">Loading...</div></div>
+    <div class="grid" id="grid"><div class="loading">Loading...</div></div>
 
     <div class="modal" id="modal">
         <div class="modal-header">
             <button class="close-btn" onclick="closeModal()">×</button>
-            <button class="article-btn" onclick="openArticle()" data-i18n="read">Read</button>
+            <button class="article-btn" onclick="openArticle()">阅读</button>
         </div>
         <div class="photo-viewer" id="viewer"></div>
     </div>
@@ -264,65 +246,6 @@
     </div>
 
     <script>
-        // i18n translations
-        const i18n = {
-            en: {
-                subtitle: 'Daily Mindful Moments',
-                tabAll: 'All',
-                tabNature: 'Nature',
-                tabFood: 'Food',
-                tabTravel: 'Travel',
-                read: 'Read',
-                swipeUpRead: '↑ Swipe up to read',
-                swipeUpNext: '↑ Swipe for next ↓',
-                tips: 'Tips',
-                loading: 'Loading...',
-                retry: 'Retry',
-                noPosts: 'No posts'
-            },
-            zh: {
-                subtitle: '每日正念时刻',
-                tabAll: '全部',
-                tabNature: '自然',
-                tabFood: '美食',
-                tabTravel: '旅行',
-                read: '阅读',
-                swipeUpRead: '↑ 上划阅读',
-                swipeUpNext: '↑ 上滑查看下一篇 ↓',
-                tips: '小贴士',
-                loading: '加载中...',
-                retry: '重试',
-                noPosts: '暂无内容'
-            }
-        };
-        
-        let currentLang = localStorage.getItem('zenfeeds_lang') || 'en';
-        
-        function setLang(lang) {
-            currentLang = lang;
-            localStorage.setItem('zenfeeds_lang', lang);
-            document.querySelectorAll('.lang-btn').forEach(btn => {
-                btn.classList.toggle('active', 
-                    (lang === 'en' && btn.textContent === 'EN') || 
-                    (lang === 'zh' && btn.textContent === '中')
-                );
-            });
-            updateUI();
-        }
-        
-        function t(key) {
-            return i18n[currentLang][key] || i18n['en'][key];
-        }
-        
-        function updateUI() {
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                if (i18n[currentLang][key]) {
-                    el.textContent = i18n[currentLang][key];
-                }
-            });
-        }
-        
         let allPosts = [];
         let filteredPosts = [];
         let currentIndex = 0;
@@ -340,7 +263,7 @@
                 renderGrid();
             } catch (e) {
                 console.error(e);
-                grid.innerHTML = `<div class="error-msg">Failed to load. <button onclick="init()" style="margin-top:12px;padding:8px 16px;border:none;background:#333;color:#fff;border-radius:20px;cursor:pointer;">${t('retry')}</button></div>`;
+                grid.innerHTML = '<div class="error-msg">Failed to load. <button onclick="init()" style="margin-top:12px;padding:8px 16px;border:none;background:#333;color:#fff;border-radius:20px;cursor:pointer;">Retry</button></div>';
             }
         }
 
@@ -354,7 +277,7 @@
         function renderGrid() {
             const grid = document.getElementById('grid');
             if (filteredPosts.length === 0) {
-                grid.innerHTML = `<div class="error-msg">${t('noPosts')}</div>`;
+                grid.innerHTML = '<div class="error-msg">No posts</div>';
                 return;
             }
             grid.innerHTML = filteredPosts.map((post, i) => `
@@ -405,7 +328,7 @@
                             `<div class="nav-dot ${j === i ? 'active' : ''}"></div>`
                         ).join('')}
                     </div>
-                    <div class="modal-swipe-hint" data-i18n="swipeUpRead">↑ Swipe up to read</div>
+                    <div class="modal-swipe-hint">↑ 上划阅读</div>
                 </div>
             `).join('');
         }
@@ -432,7 +355,7 @@
             filteredPosts.forEach((post, i) => {
                 let tipsHtml = '';
                 if (post.article && post.article.tips && post.article.tips.length > 0) {
-                    tipsHtml = `<div class="tips-box"><div class="tips-title">${t('tips')}</div><ul class="tips-list">` + 
+                    tipsHtml = '<div class="tips-box"><div class="tips-title">Tips</div><ul class="tips-list">' + 
                         post.article.tips.map(tip => `<li>${tip}</li>`).join('') + '</ul></div>';
                 }
                 
@@ -461,7 +384,7 @@
                 `;
             });
             
-            view.innerHTML = html + `<div class="swipe-hint" id="swipeHint">${t('swipeUpNext')}</div>`;
+            view.innerHTML = html + '<div class="swipe-hint" id="swipeHint">↑ 上滑查看下一篇 ↓</div>';
             view.classList.add('active');
             document.body.style.overflow = 'hidden';
             
@@ -543,9 +466,6 @@
             }
         });
 
-        // Initialize language
-        setLang(currentLang);
-        
         init();
     </script>
 </body>

@@ -143,7 +143,7 @@
             const grid = document.getElementById('grid');
             try {
                 console.log('Fetching feeds.json...');
-                const res = await fetch('feeds.json', { cache: 'no-cache' });
+                const res = await fetch('feeds.json?v=2', { cache: 'no-cache' });
                 if (!res.ok) throw new Error('HTTP ' + res.status);
                 const data = await res.json();
                 allPosts = Object.values(data);
@@ -204,7 +204,6 @@
                 viewer.scrollLeft = index * viewer.clientWidth;
             }, 50);
             
-            // Track scroll to update currentIndex
             document.getElementById('viewer').onscroll = () => {
                 const viewer = document.getElementById('viewer');
                 currentIndex = Math.round(viewer.scrollLeft / viewer.clientWidth);
@@ -244,7 +243,6 @@
             document.getElementById('articleView').classList.remove('active');
         }
 
-        // Swipe handling
         let startX, startY;
         const modal = document.getElementById('modal');
         const articleView = document.getElementById('articleView');
@@ -275,7 +273,6 @@
             startX = startY = null;
         }, { passive: true });
 
-        // Keyboard support
         document.addEventListener('keydown', (e) => {
             if (!modal.classList.contains('active')) return;
             if (e.key === 'Escape') {
@@ -284,7 +281,6 @@
             }
         });
 
-        // Initialize
         init();
     </script>
 </body>

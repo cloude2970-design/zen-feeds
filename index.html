@@ -8,103 +8,22 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Inter', sans-serif; background: #fafafa; color: #333; }
-        
-        .header { 
-            position: sticky; top: 0; background: #fff; padding: 16px 20px; 
-            border-bottom: 1px solid #eee; z-index: 100; 
-        }
+        .header { position: sticky; top: 0; background: #fff; padding: 16px 20px; border-bottom: 1px solid #eee; z-index: 100; }
         .header h1 { font-family: 'Playfair Display', serif; font-size: 22px; }
         .header p { font-size: 13px; color: #888; margin-top: 4px; }
-        
         .tabs { display: flex; gap: 8px; margin-top: 12px; overflow-x: auto; }
-        .tab { 
-            padding: 6px 14px; border: none; background: #f0f0f0; 
-            border-radius: 20px; font-size: 13px; cursor: pointer; white-space: nowrap; 
-        }
+        .tab { padding: 6px 14px; border: none; background: #f0f0f0; border-radius: 20px; font-size: 13px; cursor: pointer; white-space: nowrap; }
         .tab.active { background: #333; color: #fff; }
-        
-        .grid { 
-            display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; 
-            padding: 12px; max-width: 600px; margin: 0 auto; 
-        }
-        @media (min-width: 768px) { 
-            .grid { grid-template-columns: repeat(3, 1fr); max-width: 900px; } 
-        }
-        
-        .item { 
-            background: #fff; border-radius: 12px; overflow: hidden; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06); cursor: pointer; 
-        }
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; padding: 12px; max-width: 600px; margin: 0 auto; }
+        @media (min-width: 768px) { .grid { grid-template-columns: repeat(3, 1fr); max-width: 900px; } }
+        .item { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); cursor: pointer; }
         .item img { width: 100%; height: 200px; object-fit: cover; display: block; }
         .item-info { padding: 12px; }
         .item-author { font-size: 11px; color: #999; text-transform: uppercase; letter-spacing: 0.5px; }
-        .item-title { 
-            font-family: 'Playfair Display', serif; font-size: 15px; 
-            margin-top: 4px; line-height: 1.3; display: -webkit-box; 
-            -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; 
-        }
-        
-        .error-msg { padding: 40px; text-align: center; color: #666; }
+        .item-title { font-family: 'Playfair Display', serif; font-size: 15px; margin-top: 4px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .error-msg { padding: 40px; text-align: center; color: #666; background: #fff; margin: 20px; border-radius: 12px; }
         .loading { padding: 40px; text-align: center; color: #999; }
-        
-        .modal { 
-            display: none; position: fixed; top: 0; left: 0; 
-            width: 100%; height: 100%; background: #000; z-index: 1000; 
-        }
-        .modal.active { display: block; }
-        
-        .close-btn { 
-            position: absolute; top: 12px; left: 12px; z-index: 1002; 
-            background: rgba(255,255,255,0.2); border: none; color: #fff; 
-            width: 40px; height: 40px; border-radius: 50%; font-size: 20px; 
-            cursor: pointer; backdrop-filter: blur(4px);
-        }
-        
-        .photo-viewer { 
-            display: flex; overflow-x: auto; scroll-snap-type: x mandatory; 
-            scroll-behavior: smooth; height: 100%; 
-        }
-        .photo-viewer::-webkit-scrollbar { display: none; }
-        
-        .photo-slide { 
-            min-width: 100%; height: 100%; scroll-snap-align: start; 
-            display: flex; flex-direction: column; justify-content: center; 
-            align-items: center; position: relative; 
-        }
-        .photo-slide img { max-width: 100%; max-height: 70vh; object-fit: contain; }
-        .photo-info { 
-            position: absolute; bottom: 80px; left: 20px; right: 20px; 
-            color: #fff; text-align: center; text-shadow: 0 2px 4px rgba(0,0,0,0.5); 
-        }
-        .photo-title { font-family: 'Playfair Display', serif; font-size: 22px; margin-bottom: 8px; }
-        .photo-summary { font-size: 14px; opacity: 0.9; font-style: italic; }
-        .swipe-hint { 
-            position: absolute; bottom: 30px; left: 0; right: 0; 
-            text-align: center; color: #fff; font-size: 13px; opacity: 0.5; 
-        }
-        
-        .article-view { 
-            position: absolute; top: 100%; left: 0; width: 100%; height: 100%; 
-            background: #fff; transition: transform 0.3s ease; overflow-y: auto; 
-        }
-        .article-view.active { transform: translateY(-100%); }
-        
-        .article-header { 
-            position: sticky; top: 0; background: #fff; padding: 16px 20px; 
-            border-bottom: 1px solid #eee; display: flex; align-items: center; justify-content: space-between; 
-        }
-        .back-btn { font-size: 20px; background: none; border: none; cursor: pointer; padding: 4px; }
-        
-        .article-content { padding: 24px; max-width: 600px; margin: 0 auto; }
-        .article-headline { font-family: 'Playfair Display', serif; font-size: 24px; line-height: 1.3; margin-bottom: 24px; }
-        .article-body { font-size: 16px; line-height: 1.8; color: #444; }
-        .article-body p { margin-bottom: 16px; }
-        
-        .tips-box { background: #f5f5f5; padding: 20px; border-radius: 12px; margin-top: 32px; }
-        .tips-title { font-size: 12px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
-        .tips-list { list-style: none; }
-        .tips-list li { padding: 8px 0; padding-left: 20px; position: relative; font-size: 15px; color: #555; }
-        .tips-list li::before { content: "•"; position: absolute; left: 0; color: #333; }
+        .debug-info { font-size: 12px; color: #999; margin-top: 10px; font-family: monospace; }
     </style>
 </head>
 <body>
@@ -119,42 +38,64 @@
         </div>
     </div>
 
-    <div class="grid" id="grid"><div class="loading">Loading...</div></div>
-
-    <div class="modal" id="modal">
-        <button class="close-btn" onclick="closeModal()">←</button>
-        <div class="photo-viewer" id="viewer"></div>
-        <div class="article-view" id="articleView">
-            <div class="article-header">
-                <button class="back-btn" onclick="closeArticle()">←</button>
-                <span style="font-size: 16px; font-weight: 500;">Article</span>
-                <div style="width: 32px;"></div>
-            </div>
-            <div class="article-content" id="articleContent"></div>
-        </div>
-    </div>
+    <div class="grid" id="grid"><div class="loading">Loading...<br><span class="debug-info" id="debug">Initializing</span></div></div>
 
     <script>
         let allPosts = [];
         let filteredPosts = [];
-        let currentIndex = 0;
+
+        function updateDebug(msg) {
+            const d = document.getElementById('debug');
+            if (d) d.textContent = msg;
+            console.log('[ZenFeeds]', msg);
+        }
 
         async function init() {
             const grid = document.getElementById('grid');
+            updateDebug('Starting fetch...');
+            
             try {
-                console.log('Fetching feeds.json...');
-                const res = await fetch('feeds.json?v=2', { cache: 'no-cache' });
-                if (!res.ok) throw new Error('HTTP ' + res.status);
-                const data = await res.json();
+                const url = 'feeds.json?t=' + Date.now();
+                updateDebug('Fetching: ' + url);
+                
+                const res = await fetch(url);
+                updateDebug('Response status: ' + res.status);
+                
+                if (!res.ok) {
+                    throw new Error('HTTP ' + res.status);
+                }
+                
+                const text = await res.text();
+                updateDebug('Got ' + text.length + ' bytes');
+                
+                let data;
+                try {
+                    data = JSON.parse(text);
+                } catch (e) {
+                    throw new Error('JSON parse error: ' + e.message);
+                }
+                
                 allPosts = Object.values(data);
-                console.log('Loaded', allPosts.length, 'posts');
-                if (allPosts.length === 0) throw new Error('No posts found');
+                updateDebug('Loaded ' + allPosts.length + ' posts');
+                
+                if (allPosts.length === 0) {
+                    throw new Error('No posts found');
+                }
+                
                 allPosts.sort(() => Math.random() - 0.5);
                 filteredPosts = [...allPosts];
                 renderGrid();
+                
             } catch (e) {
-                console.error('Failed to load:', e);
-                grid.innerHTML = '<div class="error-msg">Failed to load content. <button onclick="init()" style="padding: 8px 16px; margin-top: 16px; border: none; background: #333; color: #fff; border-radius: 20px; cursor: pointer;">Retry</button></div>';
+                console.error(e);
+                updateDebug('Error: ' + e.message);
+                grid.innerHTML = `
+                    <div class="error-msg">
+                        <div>Failed to load content</div>
+                        <div class="debug-info">${e.message}</div>
+                        <button onclick="init()" style="padding: 10px 20px; margin-top: 16px; border: none; background: #333; color: #fff; border-radius: 20px; cursor: pointer; font-size: 14px;">Retry</button>
+                    </div>
+                `;
             }
         }
 
@@ -173,8 +114,8 @@
                 return;
             }
             grid.innerHTML = filteredPosts.map((post, i) => `
-                <div class="item" onclick="openModal(${i})">
-                    <img src="${post.url}" loading="lazy" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 400 300%22><rect fill=%22%23f0f0f0%22 width=%22400%22 height=%22300%22/><text fill=%22%23999%22 font-size=%2214%22 x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22>Image unavailable</text></svg>'">
+                <div class="item" onclick="alert('${post.title || 'Untitled'}')">
+                    <img src="${post.url}" loading="lazy" onerror="this.style.display='none'">
                     <div class="item-info">
                         <div class="item-author">${post.author || 'Unknown'}</div>
                         <div class="item-title">${post.title || 'Untitled'}</div>
@@ -183,105 +124,12 @@
             `).join('');
         }
 
-        function openModal(index) {
-            currentIndex = index;
-            document.getElementById('modal').classList.add('active');
-            document.body.style.overflow = 'hidden';
-            
-            document.getElementById('viewer').innerHTML = filteredPosts.map((post, i) => `
-                <div class="photo-slide" data-index="${i}" onclick="showArticle(${i})">
-                    <img src="${post.url}" onerror="this.style.display='none'">
-                    <div class="photo-info">
-                        <div class="photo-title">${post.title || 'Untitled'}</div>
-                        <div class="photo-summary">${post.summary || ''}</div>
-                    </div>
-                    <div class="swipe-hint">↑ Tap for article</div>
-                </div>
-            `).join('');
-            
-            setTimeout(() => {
-                const viewer = document.getElementById('viewer');
-                viewer.scrollLeft = index * viewer.clientWidth;
-            }, 50);
-            
-            document.getElementById('viewer').onscroll = () => {
-                const viewer = document.getElementById('viewer');
-                currentIndex = Math.round(viewer.scrollLeft / viewer.clientWidth);
-            };
+        // Start loading
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
         }
-
-        function closeModal() {
-            document.getElementById('modal').classList.remove('active');
-            document.getElementById('articleView').classList.remove('active');
-            document.body.style.overflow = '';
-        }
-
-        function showArticle(index) {
-            const post = filteredPosts[index];
-            const view = document.getElementById('articleView');
-            const content = document.getElementById('articleContent');
-            
-            let tipsHtml = '';
-            if (post.article && post.article.tips && post.article.tips.length > 0) {
-                tipsHtml = '<div class="tips-box"><div class="tips-title">Tips</div><ul class="tips-list">' + 
-                    post.article.tips.map(tip => `<li>${tip}</li>`).join('') + 
-                    '</ul></div>';
-            }
-            
-            const articleContent = post.article ? post.article.content.replace(/\n\n/g, '</p><p>') : post.summary || '';
-            const headline = post.article ? post.article.headline : post.title;
-            
-            content.innerHTML = `
-                <div class="article-headline">${headline}</div>
-                <div class="article-body"><p>${articleContent}</p></div>
-                ${tipsHtml}
-            `;
-            view.classList.add('active');
-        }
-
-        function closeArticle() {
-            document.getElementById('articleView').classList.remove('active');
-        }
-
-        let startX, startY;
-        const modal = document.getElementById('modal');
-        const articleView = document.getElementById('articleView');
-
-        modal.addEventListener('touchstart', (e) => {
-            startX = e.touches[0].clientX;
-            startY = e.touches[0].clientY;
-        }, { passive: true });
-
-        modal.addEventListener('touchend', (e) => {
-            if (!startX || !startY) return;
-            const dx = e.changedTouches[0].clientX - startX;
-            const dy = e.changedTouches[0].clientY - startY;
-            
-            if (articleView.classList.contains('active')) {
-                if (dy > 100) closeArticle();
-                return;
-            }
-            
-            if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
-                const viewer = document.getElementById('viewer');
-                if (dx < 0) currentIndex = Math.min(currentIndex + 1, filteredPosts.length - 1);
-                else currentIndex = Math.max(currentIndex - 1, 0);
-                viewer.scrollTo({ left: currentIndex * viewer.clientWidth, behavior: 'smooth' });
-            } else if (dy < -100) {
-                showArticle(currentIndex);
-            }
-            startX = startY = null;
-        }, { passive: true });
-
-        document.addEventListener('keydown', (e) => {
-            if (!modal.classList.contains('active')) return;
-            if (e.key === 'Escape') {
-                if (articleView.classList.contains('active')) closeArticle();
-                else closeModal();
-            }
-        });
-
-        init();
     </script>
 </body>
 </html>

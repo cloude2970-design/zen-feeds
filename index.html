@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Zen Feeds</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
     <style>
@@ -38,7 +38,7 @@
         }
         .item img { 
             width: 100%; 
-            height: auto; /* 原尺寸，不裁剪 */
+            height: auto;
             display: block; 
         }
         .item-info { padding: 10px; }
@@ -57,45 +57,27 @@
         .loading { padding: 40px; text-align: center; color: #999; }
         .error-msg { padding: 40px; text-align: center; color: #666; }
         
-        /* Modal - 横屏模式 */
+        /* Modal - 竖屏全屏 */
         .modal { 
             display: none; 
             position: fixed; 
             top: 0; left: 0; 
-            width: 100%; height: 100%; 
+            width: 100%; 
+            height: 100%; 
             background: #000; 
             z-index: 1000; 
         }
         .modal.active { display: flex; flex-direction: column; }
         
-        /* 强制横屏样式 */
-        @media screen and (orientation: portrait) {
-            .modal.active .landscape-container {
-                transform: rotate(90deg);
-                transform-origin: center center;
-                width: 100vh;
-                height: 100vw;
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                margin-top: -50vw;
-                margin-left: -50vh;
-            }
-        }
-        
-        .landscape-container {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-direction: column;
-        }
-        
         .modal-header {
+            position: absolute;
+            top: 0; left: 0; right: 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 12px 16px;
-            background: rgba(0,0,0,0.8);
+            padding-top: max(12px, env(safe-area-inset-top));
+            background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
             color: #fff;
             z-index: 10;
         }
@@ -103,23 +85,25 @@
             background: none; 
             border: none; 
             color: #fff; 
-            font-size: 24px; 
+            font-size: 28px; 
             cursor: pointer; 
             padding: 4px 12px;
+            line-height: 1;
         }
         .modal-title {
             font-family: 'Playfair Display', serif;
             font-size: 16px;
             text-align: center;
             flex: 1;
+            padding: 0 12px;
         }
         .article-btn {
             background: rgba(255,255,255,0.2);
             border: none;
             color: #fff;
-            padding: 6px 12px;
-            border-radius: 16px;
-            font-size: 12px;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 13px;
             cursor: pointer;
         }
         
@@ -137,9 +121,10 @@
             height: 100%;
             scroll-snap-align: start; 
             display: flex; 
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            position: relative;
         }
         .photo-slide img { 
             max-width: 100%; 
@@ -147,15 +132,36 @@
             object-fit: contain; 
         }
         
-        .nav-hint {
+        .photo-info {
             position: absolute;
-            bottom: 20px;
-            left: 0;
-            right: 0;
+            bottom: 0; left: 0; right: 0;
+            padding: 60px 20px 30px;
+            padding-bottom: max(30px, env(safe-area-inset-bottom));
+            background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+            color: #fff;
             text-align: center;
-            color: rgba(255,255,255,0.5);
-            font-size: 12px;
         }
+        .photo-summary {
+            font-size: 15px;
+            font-style: italic;
+            opacity: 0.9;
+            line-height: 1.5;
+        }
+        
+        .nav-dots {
+            position: absolute;
+            bottom: 100px;
+            left: 0; right: 0;
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+        }
+        .nav-dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.4);
+        }
+        .nav-dot.active { background: #fff; }
         
         /* Article View */
         .article-view { 
@@ -202,15 +208,12 @@
     <div class="grid" id="grid"><div class="loading">Loading...</div></div>
 
     <div class="modal" id="modal">
-        <div class="landscape-container">
-            <div class="modal-header">
-                <button class="close-btn" onclick="closeModal()">×</button>
-                <div class="modal-title" id="modalTitle">Title</div>
-                <button class="article-btn" onclick="openArticle()">Article</button>
-            </div>
-            <div class="photo-viewer" id="viewer"></div>
-            <div class="nav-hint">← Swipe to navigate →</div>
+        <div class="modal-header">
+            <button class="close-btn" onclick="closeModal()">×</button>
+            <div class="modal-title" id="modalTitle"></div>
+            <button class="article-btn" onclick="openArticle()">Article</button>
         </div>
+        <div class="photo-viewer" id="viewer"></div>
     </div>
 
     <div class="article-view" id="articleView">
@@ -274,18 +277,8 @@
             modal.classList.add('active');
             document.body.style.overflow = 'hidden';
             
-            // Request landscape orientation if supported
-            if (screen.orientation && screen.orientation.lock) {
-                screen.orientation.lock('landscape').catch(() => {});
-            }
-            
             updateModalTitle();
-            
-            viewer.innerHTML = filteredPosts.map((post, i) => `
-                <div class="photo-slide">
-                    <img src="${post.url}" onerror="this.style.opacity='0.3'">
-                </div>
-            `).join('');
+            renderViewer();
             
             setTimeout(() => {
                 viewer.scrollLeft = index * viewer.clientWidth;
@@ -296,8 +289,32 @@
                 if (newIndex !== currentIndex) {
                     currentIndex = newIndex;
                     updateModalTitle();
+                    updateDots();
                 }
             };
+        }
+
+        function renderViewer() {
+            const viewer = document.getElementById('viewer');
+            viewer.innerHTML = filteredPosts.map((post, i) => `
+                <div class="photo-slide">
+                    <img src="${post.url}" onerror="this.style.opacity='0.3'">
+                    <div class="photo-info">
+                        <div class="photo-summary">${post.summary || ''}</div>
+                    </div>
+                    <div class="nav-dots">
+                        ${filteredPosts.slice(0, Math.min(10, filteredPosts.length)).map((_, j) => 
+                            `<div class="nav-dot ${j === i ? 'active' : ''}"></div>`
+                        ).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateDots() {
+            document.querySelectorAll('.nav-dot').forEach((dot, i) => {
+                dot.classList.toggle('active', i === currentIndex);
+            });
         }
 
         function updateModalTitle() {
@@ -308,11 +325,6 @@
         function closeModal() {
             document.getElementById('modal').classList.remove('active');
             document.body.style.overflow = '';
-            
-            // Unlock orientation
-            if (screen.orientation && screen.orientation.unlock) {
-                screen.orientation.unlock();
-            }
         }
 
         function openArticle() {
@@ -345,17 +357,17 @@
 
         // Touch swipe
         let startX;
-        const viewer = document.getElementById('viewer');
-        
-        viewer.addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; }, { passive: true });
-        viewer.addEventListener('touchend', (e) => {
+        document.getElementById('viewer').addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; }, { passive: true });
+        document.getElementById('viewer').addEventListener('touchend', (e) => {
             if (!startX) return;
             const dx = e.changedTouches[0].clientX - startX;
+            const viewer = document.getElementById('viewer');
             if (Math.abs(dx) > 50) {
                 if (dx < 0 && currentIndex < filteredPosts.length - 1) currentIndex++;
                 else if (dx > 0 && currentIndex > 0) currentIndex--;
                 viewer.scrollTo({ left: currentIndex * viewer.clientWidth, behavior: 'smooth' });
                 updateModalTitle();
+                updateDots();
             }
             startX = null;
         }, { passive: true });
@@ -368,15 +380,16 @@
             }
             if (!document.getElementById('modal').classList.contains('active')) return;
             
+            const viewer = document.getElementById('viewer');
             if (e.key === 'Escape') closeModal();
             else if (e.key === 'ArrowRight' && currentIndex < filteredPosts.length - 1) {
                 currentIndex++;
                 viewer.scrollTo({ left: currentIndex * viewer.clientWidth, behavior: 'smooth' });
-                updateModalTitle();
+                updateModalTitle(); updateDots();
             } else if (e.key === 'ArrowLeft' && currentIndex > 0) {
                 currentIndex--;
                 viewer.scrollTo({ left: currentIndex * viewer.clientWidth, behavior: 'smooth' });
-                updateModalTitle();
+                updateModalTitle(); updateDots();
             }
         });
 

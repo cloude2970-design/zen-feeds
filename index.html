@@ -236,13 +236,13 @@
     <div class="modal" id="modal">
         <div class="modal-header">
             <button class="close-btn" onclick="closeModal()">×</button>
-            <button class="article-btn" onclick="openArticle()">阅读</button>
+            <button class="article-btn" onclick="openArticle()">Read</button>
         </div>
         <div class="photo-viewer" id="viewer"></div>
     </div>
 
     <div class="article-view" id="articleView">
-        <div class="swipe-hint" id="swipeHint">↑ 上滑查看下一篇 ↓</div>
+        <div class="swipe-hint" id="swipeHint">↑ Swipe for next ↓</div>
     </div>
 
     <script>
@@ -328,7 +328,7 @@
                             `<div class="nav-dot ${j === i ? 'active' : ''}"></div>`
                         ).join('')}
                     </div>
-                    <div class="modal-swipe-hint">↑ 上划阅读</div>
+                    <div class="modal-swipe-hint">↑ Swipe up to read</div>
                 </div>
             `).join('');
         }
@@ -384,7 +384,7 @@
                 `;
             });
             
-            view.innerHTML = html + '<div class="swipe-hint" id="swipeHint">↑ 上滑查看下一篇 ↓</div>';
+            view.innerHTML = html + '<div class="swipe-hint" id="swipeHint">↑ Swipe for next ↓</div>';
             view.classList.add('active');
             document.body.style.overflow = 'hidden';
             

@@ -201,6 +201,22 @@
             z-index: 1200;
             pointer-events: none;
         }
+        
+        .modal-swipe-hint {
+            position: absolute;
+            bottom: 140px;
+            left: 0; right: 0;
+            text-align: center;
+            color: rgba(255,255,255,0.6);
+            font-size: 13px;
+            z-index: 5;
+            pointer-events: none;
+            animation: bounce 2s infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
     </style>
 </head>
 <body>
@@ -312,6 +328,7 @@
                             `<div class="nav-dot ${j === i ? 'active' : ''}"></div>`
                         ).join('')}
                     </div>
+                    <div class="modal-swipe-hint">↑ 上划阅读</div>
                 </div>
             `).join('');
         }
@@ -397,20 +414,35 @@
             document.body.style.overflow = '';
         }
 
-        // Touch swipe for modal (horizontal)
-        let startX;
-        document.getElementById('viewer').addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; }, { passive: true });
-        document.getElementById('viewer').addEventListener('touchend', (e) => {
-            if (!startX) return;
+        // Touch swipe for modal (horizontal + vertical for article)
+        let startX, startY;
+        const viewer = document.getElementById('viewer');
+        
+        viewer.addEventListener('touchstart', (e) => {
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+        }, { passive: true });
+        
+        viewer.addEventListener('touchend', (e) => {
+            if (!startX || !startY) return;
             const dx = e.changedTouches[0].clientX - startX;
-            const viewer = document.getElementById('viewer');
-            if (Math.abs(dx) > 50) {
+            const dy = e.changedTouches[0].clientY - startY;
+            
+            // Vertical swipe up to open article
+            if (dy < -80 && Math.abs(dy) > Math.abs(dx)) {
+                openArticle();
+                startX = startY = null;
+                return;
+            }
+            
+            // Horizontal swipe for navigation
+            if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
                 if (dx < 0 && currentIndex < filteredPosts.length - 1) currentIndex++;
                 else if (dx > 0 && currentIndex > 0) currentIndex--;
                 viewer.scrollTo({ left: currentIndex * viewer.clientWidth, behavior: 'smooth' });
                 updateDots();
             }
-            startX = null;
+            startX = startY = null;
         }, { passive: true });
 
         // Keyboard

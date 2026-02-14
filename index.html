@@ -16,7 +16,6 @@
         .tab { padding: 6px 14px; border: none; background: #f0f0f0; border-radius: 20px; font-size: 13px; cursor: pointer; white-space: nowrap; }
         .tab.active { background: #333; color: #fff; }
         
-        /* Grid - 原尺寸图片 */
         .grid { 
             display: grid; 
             grid-template-columns: repeat(2, 1fr); 
@@ -57,13 +56,12 @@
         .loading { padding: 40px; text-align: center; color: #999; }
         .error-msg { padding: 40px; text-align: center; color: #666; }
         
-        /* Modal - 竖屏全屏 */
+        /* Modal */
         .modal { 
             display: none; 
             position: fixed; 
             top: 0; left: 0; 
-            width: 100%; 
-            height: 100%; 
+            width: 100%; height: 100%; 
             background: #000; 
             z-index: 1000; 
         }
@@ -82,22 +80,12 @@
             z-index: 10;
         }
         .close-btn { 
-            background: none; 
-            border: none; 
-            color: #fff; 
-            font-size: 28px; 
-            cursor: pointer; 
-            padding: 4px 12px;
-            line-height: 1;
+            background: none; border: none; color: #fff; 
+            font-size: 28px; cursor: pointer; padding: 4px 12px; line-height: 1;
         }
         .article-btn {
-            background: rgba(255,255,255,0.25);
-            border: none;
-            color: #fff;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 13px;
-            cursor: pointer;
+            background: rgba(255,255,255,0.25); border: none; color: #fff;
+            padding: 8px 16px; border-radius: 20px; font-size: 13px; cursor: pointer;
         }
         
         .photo-viewer { 
@@ -110,60 +98,33 @@
         .photo-viewer::-webkit-scrollbar { display: none; }
         
         .photo-slide { 
-            min-width: 100%; 
-            height: 100%;
+            min-width: 100%; height: 100%;
             scroll-snap-align: start; 
-            display: flex; 
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
             position: relative;
         }
         .photo-slide img { 
-            max-width: 100%; 
-            max-height: 100%; 
-            object-fit: contain; 
+            max-width: 100%; max-height: 100%; object-fit: contain; 
         }
-        
         .photo-info {
-            position: absolute;
-            bottom: 0; left: 0; right: 0;
+            position: absolute; bottom: 0; left: 0; right: 0;
             padding: 80px 24px 40px;
             padding-bottom: max(40px, env(safe-area-inset-bottom));
             background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
-            color: #fff;
-            text-align: center;
+            color: #fff; text-align: center;
         }
-        .photo-title {
-            font-family: 'Playfair Display', serif;
-            font-size: 20px;
-            font-weight: 600;
-            margin-bottom: 12px;
-            line-height: 1.3;
-        }
-        .photo-summary {
-            font-size: 15px;
-            font-style: italic;
-            opacity: 0.85;
-            line-height: 1.5;
-        }
+        .photo-title { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 600; margin-bottom: 12px; }
+        .photo-summary { font-size: 15px; font-style: italic; opacity: 0.85; line-height: 1.5; }
         
         .nav-dots {
-            position: absolute;
-            bottom: 100px;
-            left: 0; right: 0;
-            display: flex;
-            justify-content: center;
-            gap: 6px;
+            position: absolute; bottom: 100px; left: 0; right: 0;
+            display: flex; justify-content: center; gap: 6px;
         }
-        .nav-dot {
-            width: 6px; height: 6px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.4);
-        }
+        .nav-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.4); }
         .nav-dot.active { background: #fff; }
         
-        /* Article View */
+        /* Article View - TikTok style vertical scroll */
         .article-view { 
             position: fixed;
             top: 0; left: 0;
@@ -171,26 +132,75 @@
             background: #fff; 
             z-index: 1100;
             overflow-y: auto;
+            scroll-snap-type: y mandatory;
             display: none;
         }
         .article-view.active { display: block; }
+        .article-view::-webkit-scrollbar { display: none; }
+        
+        .article-page {
+            min-height: 100vh;
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+        }
         
         .article-header { 
-            position: sticky; top: 0; background: #fff; padding: 16px 20px; 
-            border-bottom: 1px solid #eee; display: flex; align-items: center; 
+            position: sticky; top: 0; background: #fff; padding: 12px 16px; 
+            padding-top: max(12px, env(safe-area-inset-top));
+            border-bottom: 1px solid #eee; 
+            display: flex; align-items: center; 
+            z-index: 100;
         }
         .back-btn { font-size: 20px; background: none; border: none; cursor: pointer; padding: 4px; margin-right: 12px; }
+        .nav-indicator { font-size: 13px; color: #999; margin-left: auto; }
         
-        .article-content { padding: 24px; max-width: 600px; margin: 0 auto; }
-        .article-headline { font-family: 'Playfair Display', serif; font-size: 24px; line-height: 1.3; margin-bottom: 24px; }
+        .article-hero {
+            width: 100%;
+            height: 50vh;
+            min-height: 300px;
+            position: relative;
+            overflow: hidden;
+        }
+        .article-hero img {
+            width: 100%; height: 100%; object-fit: cover;
+        }
+        .article-hero-overlay {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            padding: 60px 20px 20px;
+            background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+            color: #fff;
+        }
+        .article-hero-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 22px;
+            font-weight: 600;
+        }
+        
+        .article-content-wrapper { padding: 24px; max-width: 600px; margin: 0 auto; width: 100%; }
+        .article-headline { font-family: 'Playfair Display', serif; font-size: 24px; line-height: 1.3; margin-bottom: 20px; }
         .article-body { font-size: 16px; line-height: 1.8; color: #444; }
         .article-body p { margin-bottom: 16px; }
         
-        .tips-box { background: #f5f5f5; padding: 20px; border-radius: 12px; margin-top: 32px; }
+        .tips-box { background: #f5f5f5; padding: 20px; border-radius: 12px; margin-top: 24px; }
         .tips-title { font-size: 12px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
         .tips-list { list-style: none; }
         .tips-list li { padding: 8px 0; padding-left: 20px; position: relative; font-size: 15px; color: #555; }
         .tips-list li::before { content: "•"; position: absolute; left: 0; color: #333; }
+        
+        .swipe-hint {
+            position: fixed;
+            bottom: 20px;
+            left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            z-index: 1200;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -216,17 +226,14 @@
     </div>
 
     <div class="article-view" id="articleView">
-        <div class="article-header">
-            <button class="back-btn" onclick="closeArticle()">←</button>
-            <span style="font-size: 16px; font-weight: 500;">Article</span>
-        </div>
-        <div class="article-content" id="articleContent"></div>
+        <div class="swipe-hint" id="swipeHint">↑ 上滑查看下一篇 ↓</div>
     </div>
 
     <script>
         let allPosts = [];
         let filteredPosts = [];
         let currentIndex = 0;
+        let articleStartIndex = 0;
 
         async function init() {
             const grid = document.getElementById('grid');
@@ -321,34 +328,76 @@
         }
 
         function openArticle() {
-            const post = filteredPosts[currentIndex];
-            if (!post) return;
-            
+            articleStartIndex = currentIndex;
             const view = document.getElementById('articleView');
-            const content = document.getElementById('articleContent');
             
-            let tipsHtml = '';
-            if (post.article && post.article.tips && post.article.tips.length > 0) {
-                tipsHtml = '<div class="tips-box"><div class="tips-title">Tips</div><ul class="tips-list">' + 
-                    post.article.tips.map(tip => `<li>${tip}</li>`).join('') + '</ul></div>';
-            }
+            // Build all articles as vertical scroll pages
+            let html = '';
+            const total = filteredPosts.length;
             
-            const articleText = post.article ? post.article.content.replace(/\n\n/g, '</p><p>') : post.summary || '';
-            const headline = post.article ? post.article.headline : post.title;
+            filteredPosts.forEach((post, i) => {
+                let tipsHtml = '';
+                if (post.article && post.article.tips && post.article.tips.length > 0) {
+                    tipsHtml = '<div class="tips-box"><div class="tips-title">Tips</div><ul class="tips-list">' + 
+                        post.article.tips.map(tip => `<li>${tip}</li>`).join('') + '</ul></div>';
+                }
+                
+                const articleText = post.article ? post.article.content.replace(/\n\n/g, '</p><p>') : post.summary || '';
+                const headline = post.article ? post.article.headline : post.title;
+                
+                html += `
+                    <div class="article-page" data-index="${i}">
+                        <div class="article-header">
+                            <button class="back-btn" onclick="closeArticle()">←</button>
+                            <span style="font-size: 16px; font-weight: 500;">${post.category || 'Article'}</span>
+                            <span class="nav-indicator">${i + 1} / ${total}</span>
+                        </div>
+                        <div class="article-hero">
+                            <img src="${post.url}" onerror="this.style.display='none'">
+                            <div class="article-hero-overlay">
+                                <div class="article-hero-title">${post.title || ''}</div>
+                            </div>
+                        </div>
+                        <div class="article-content-wrapper">
+                            <div class="article-headline">${headline}</div>
+                            <div class="article-body"><p>${articleText}</p></div>
+                            ${tipsHtml}
+                        </div>
+                    </div>
+                `;
+            });
             
-            content.innerHTML = `
-                <div class="article-headline">${headline}</div>
-                <div class="article-body"><p>${articleText}</p></div>
-                ${tipsHtml}
-            `;
+            view.innerHTML = html + '<div class="swipe-hint" id="swipeHint">↑ 上滑查看下一篇 ↓</div>';
             view.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            
+            // Scroll to current article
+            setTimeout(() => {
+                view.scrollTo({ top: currentIndex * window.innerHeight, behavior: 'auto' });
+            }, 50);
+            
+            // Update current index on scroll
+            view.onscroll = () => {
+                const newIndex = Math.round(view.scrollTop / window.innerHeight);
+                if (newIndex !== currentIndex && newIndex >= 0 && newIndex < filteredPosts.length) {
+                    currentIndex = newIndex;
+                }
+                
+                // Hide hint after first scroll
+                const hint = document.getElementById('swipeHint');
+                if (hint && view.scrollTop > 50) {
+                    hint.style.opacity = '0';
+                    setTimeout(() => hint.remove(), 300);
+                }
+            };
         }
 
         function closeArticle() {
             document.getElementById('articleView').classList.remove('active');
+            document.body.style.overflow = '';
         }
 
-        // Touch swipe
+        // Touch swipe for modal (horizontal)
         let startX;
         document.getElementById('viewer').addEventListener('touchstart', (e) => { startX = e.touches[0].clientX; }, { passive: true });
         document.getElementById('viewer').addEventListener('touchend', (e) => {

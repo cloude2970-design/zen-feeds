@@ -1,0 +1,26 @@
+{
+  "name": "Zen Feeds",
+  "short_name": "Zen Feeds",
+  "description": "Daily mindful moments - curated peaceful content for a calmer day",
+  "start_url": "/zen-feeds/",
+  "display": "standalone",
+  "background_color": "#fafafa",
+  "theme_color": "#1a1a1a",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["lifestyle", "news", "magazines"],
+  "lang": "en"
+}

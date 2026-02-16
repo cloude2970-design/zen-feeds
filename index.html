@@ -7,6 +7,15 @@
     <meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <meta name="description" content="Daily mindful moments - curated peaceful content for a calmer day">
+    <meta property="og:title" content="Zen Feeds">
+    <meta property="og:description" content="Daily mindful moments - curated peaceful content for a calmer day">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://cloude2970-design.github.io/zen-feeds/">
+    <meta name="twitter:card" content="summary">
     <title>Zen Feeds</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1295,6 +1304,13 @@
 
         // Initialize
         init();
+        
+        // Register service worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('SW registered'))
+                .catch(err => console.log('SW registration failed:', err));
+        }
     </script>
 </body>
 </html>

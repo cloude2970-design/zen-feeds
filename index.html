@@ -3,60 +3,257 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#fafafa" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <title>Zen Feeds</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg: #fafafa;
+            --bg-card: #fff;
+            --text: #1a1a1a;
+            --text-muted: #666;
+            --text-subtle: #999;
+            --border: #eee;
+            --shadow: rgba(0,0,0,0.08);
+            --skeleton: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            --overlay-bg: rgba(0,0,0,0.85);
+        }
+        
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0a0a0a;
+                --bg-card: #1a1a1a;
+                --text: #f0f0f0;
+                --text-muted: #aaa;
+                --text-subtle: #777;
+                --border: #2a2a2a;
+                --shadow: rgba(0,0,0,0.3);
+                --skeleton: linear-gradient(90deg, #1a1a1a 25%, #2a2a2a 50%, #1a1a1a 75%);
+                --overlay-bg: rgba(0,0,0,0.95);
+            }
+        }
+        
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: #fafafa; color: #333; }
         
-        .header { position: sticky; top: 0; background: #fff; padding: 16px 20px; border-bottom: 1px solid #eee; z-index: 100; }
-        .header h1 { font-family: 'Playfair Display', serif; font-size: 22px; }
-        .header p { font-size: 13px; color: #888; margin-top: 4px; }
-        .tabs { display: flex; gap: 8px; margin-top: 12px; overflow-x: auto; }
-        .tab { padding: 6px 14px; border: none; background: #f0f0f0; border-radius: 20px; font-size: 13px; cursor: pointer; white-space: nowrap; }
-        .tab.active { background: #333; color: #fff; }
+        html { 
+            -webkit-tap-highlight-color: transparent;
+            scroll-behavior: smooth;
+        }
         
+        body { 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
+            background: var(--bg); 
+            color: var(--text);
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        /* Header */
+        .header { 
+            position: sticky; 
+            top: 0; 
+            background: var(--bg); 
+            padding: 16px 20px; 
+            padding-top: max(16px, env(safe-area-inset-top));
+            border-bottom: 1px solid var(--border); 
+            z-index: 100;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        
+        .header h1 { 
+            font-family: 'Playfair Display', serif; 
+            font-size: 24px; 
+            font-weight: 600;
+            letter-spacing: -0.5px;
+        }
+        
+        .header p { 
+            font-size: 13px; 
+            color: var(--text-subtle); 
+            margin-top: 4px;
+            font-weight: 400;
+        }
+        
+        .tabs { 
+            display: flex; 
+            gap: 8px; 
+            margin-top: 14px; 
+            overflow-x: auto; 
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .tabs::-webkit-scrollbar { display: none; }
+        
+        .tab { 
+            padding: 8px 16px; 
+            border: none; 
+            background: var(--bg-card); 
+            border-radius: 20px; 
+            font-size: 13px; 
+            font-weight: 500;
+            cursor: pointer; 
+            white-space: nowrap;
+            color: var(--text-muted);
+            transition: all 0.2s ease;
+            border: 1px solid var(--border);
+        }
+        .tab:hover { 
+            color: var(--text);
+            border-color: var(--text-muted);
+        }
+        .tab.active { 
+            background: var(--text); 
+            color: var(--bg);
+            border-color: var(--text);
+        }
+        
+        /* Grid */
         .grid { 
             display: grid; 
             grid-template-columns: repeat(2, 1fr); 
-            gap: 8px; 
-            padding: 8px; 
+            gap: 10px; 
+            padding: 10px; 
             max-width: 600px; 
-            margin: 0 auto; 
+            margin: 0 auto;
         }
         @media (min-width: 768px) { 
-            .grid { grid-template-columns: repeat(3, 1fr); max-width: 900px; } 
+            .grid { 
+                grid-template-columns: repeat(3, 1fr); 
+                max-width: 900px; 
+                gap: 12px;
+                padding: 12px;
+            } 
         }
         
+        /* Grid Item */
         .item { 
-            background: #fff; 
-            border-radius: 8px; 
+            background: var(--bg-card); 
+            border-radius: 12px; 
             overflow: hidden; 
-            box-shadow: 0 1px 4px rgba(0,0,0,0.08); 
-            cursor: pointer; 
+            box-shadow: 0 2px 8px var(--shadow);
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            will-change: transform;
         }
+        .item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px var(--shadow);
+        }
+        .item:active {
+            transform: scale(0.98);
+        }
+        
+        .item-img-container {
+            position: relative;
+            width: 100%;
+            padding-bottom: 133.33%; /* 3:4 aspect ratio */
+            overflow: hidden;
+            background: var(--skeleton);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        
+        .item-img-container.loaded {
+            animation: none;
+            background: transparent;
+        }
+        
         .item img { 
+            position: absolute;
+            top: 0;
+            left: 0;
             width: 100%; 
-            height: auto;
-            display: block; 
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            opacity: 0;
+            transition: opacity 0.4s ease;
         }
-        .item-info { padding: 10px; }
-        .item-author { font-size: 10px; color: #999; text-transform: uppercase; letter-spacing: 0.5px; }
+        .item img.loaded {
+            opacity: 1;
+        }
+        
+        .item-info { 
+            padding: 12px; 
+        }
+        .item-author { 
+            font-size: 10px; 
+            color: var(--text-subtle); 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
         .item-title { 
             font-family: 'Playfair Display', serif; 
-            font-size: 14px; 
+            font-size: 14px;
+            font-weight: 500;
             margin-top: 4px; 
-            line-height: 1.3; 
+            line-height: 1.35; 
             display: -webkit-box; 
             -webkit-line-clamp: 2; 
             -webkit-box-orient: vertical; 
-            overflow: hidden; 
+            overflow: hidden;
         }
         
-        .loading { padding: 40px; text-align: center; color: #999; }
-        .error-msg { padding: 40px; text-align: center; color: #666; }
+        /* Loading States */
+        .loading { 
+            padding: 60px 20px; 
+            text-align: center; 
+            color: var(--text-subtle);
+            grid-column: 1 / -1;
+        }
+        .loading-spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid var(--border);
+            border-top-color: var(--text);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 12px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
         
-        /* Zoom Transition Overlay - Grid to Modal */
+        .error-msg { 
+            padding: 60px 20px; 
+            text-align: center; 
+            color: var(--text-muted);
+            grid-column: 1 / -1;
+        }
+        .retry-btn {
+            margin-top: 16px;
+            padding: 10px 20px;
+            border: none;
+            background: var(--text);
+            color: var(--bg);
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        /* Stats */
+        .stats {
+            text-align: center;
+            padding: 20px;
+            color: var(--text-subtle);
+            font-size: 12px;
+        }
+        
+        /* Zoom Transition Overlay */
         .zoom-overlay {
             position: fixed;
             top: 0; left: 0;
@@ -64,33 +261,33 @@
             background: rgba(0,0,0,0);
             z-index: 999;
             pointer-events: none;
-            transition: background 0.3s ease;
+            transition: background 0.35s ease;
         }
         .zoom-overlay.active {
-            background: rgba(0,0,0,1);
+            background: var(--overlay-bg);
         }
         .zoom-image {
             position: fixed;
             object-fit: cover;
-            border-radius: 8px;
-            transition: all 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+            border-radius: 12px;
+            transition: all 0.4s cubic-bezier(0.32, 0.72, 0, 1);
             z-index: 1001;
         }
         .zoom-image.expanded {
             border-radius: 0;
         }
         
-        /* Transition - Modal to Article */
+        /* Article Transition */
         .article-transition-overlay {
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background: #fff;
+            background: var(--bg);
             z-index: 1099;
             pointer-events: none;
             opacity: 0;
             transform: translateY(100%);
-            transition: transform 0.4s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.3s ease;
+            transition: transform 0.45s cubic-bezier(0.32, 0.72, 0, 1), opacity 0.35s ease;
         }
         .article-transition-overlay.active {
             opacity: 1;
@@ -100,7 +297,7 @@
             position: fixed;
             object-fit: cover;
             z-index: 1100;
-            transition: all 0.4s cubic-bezier(0.32, 0.72, 0, 1);
+            transition: all 0.45s cubic-bezier(0.32, 0.72, 0, 1);
             border-radius: 0;
         }
         
@@ -113,7 +310,7 @@
             background: #000; 
             z-index: 1000;
             opacity: 0;
-            transition: opacity 0.1s ease;
+            transition: opacity 0.15s ease;
         }
         .modal.active { display: flex; flex-direction: column; }
         .modal.visible { opacity: 1; }
@@ -130,11 +327,11 @@
             align-items: center;
             padding: 12px 16px;
             padding-top: max(12px, env(safe-area-inset-top));
-            background: linear-gradient(to bottom, rgba(0,0,0,0.5), transparent);
+            background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent);
             color: #fff;
             z-index: 10;
             opacity: 0;
-            transition: opacity 0.3s ease 0.2s;
+            transition: opacity 0.35s ease 0.2s;
         }
         .modal.visible .modal-header { opacity: 1; }
         .modal.to-article .modal-header {
@@ -143,12 +340,33 @@
         }
         
         .close-btn { 
-            background: none; border: none; color: #fff; 
-            font-size: 28px; cursor: pointer; padding: 4px 12px; line-height: 1;
+            background: none; 
+            border: none; 
+            color: #fff; 
+            font-size: 28px; 
+            cursor: pointer; 
+            padding: 4px 12px; 
+            line-height: 1;
+            opacity: 0.9;
+            transition: opacity 0.2s;
         }
+        .close-btn:hover { opacity: 1; }
+        
         .article-btn {
-            background: rgba(255,255,255,0.25); border: none; color: #fff;
-            padding: 8px 16px; border-radius: 20px; font-size: 13px; cursor: pointer;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: #fff;
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .article-btn:hover {
+            background: rgba(255,255,255,0.3);
         }
         
         .photo-viewer { 
@@ -157,57 +375,125 @@
             overflow-x: auto; 
             scroll-snap-type: x mandatory; 
             scroll-behavior: smooth;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
         }
         .photo-viewer::-webkit-scrollbar { display: none; }
         
         .photo-slide { 
-            min-width: 100%; height: 100%;
+            min-width: 100%; 
+            height: 100%;
             scroll-snap-align: start; 
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
+            display: flex; 
+            flex-direction: column;
+            align-items: center; 
+            justify-content: center;
             position: relative;
         }
         .photo-slide img { 
-            max-width: 100%; max-height: 100%; object-fit: contain; 
+            max-width: 100%; 
+            max-height: 100%; 
+            object-fit: contain; 
         }
+        
         .photo-info {
-            position: absolute; bottom: 0; left: 0; right: 0;
-            padding: 80px 24px 40px;
-            padding-bottom: max(40px, env(safe-area-inset-bottom));
-            background: linear-gradient(to top, rgba(0,0,0,0.8), transparent);
-            color: #fff; text-align: center;
+            position: absolute; 
+            bottom: 0; 
+            left: 0; 
+            right: 0;
+            padding: 100px 24px 50px;
+            padding-bottom: max(50px, env(safe-area-inset-bottom));
+            background: linear-gradient(to top, rgba(0,0,0,0.85), transparent);
+            color: #fff; 
+            text-align: center;
             opacity: 0;
-            transition: opacity 0.3s ease 0.25s;
+            transform: translateY(10px);
+            transition: opacity 0.35s ease 0.25s, transform 0.35s ease 0.25s;
         }
-        .modal.visible .photo-info { opacity: 1; }
+        .modal.visible .photo-info { 
+            opacity: 1; 
+            transform: translateY(0);
+        }
         .modal.to-article .photo-info {
             opacity: 0;
-            transition: opacity 0.2s ease;
+            transform: translateY(10px);
+            transition: opacity 0.2s ease, transform 0.2s ease;
         }
         
-        .photo-title { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 600; margin-bottom: 12px; }
-        .photo-summary { font-size: 15px; font-style: italic; opacity: 0.85; line-height: 1.5; }
+        .photo-title { 
+            font-family: 'Playfair Display', serif; 
+            font-size: 22px; 
+            font-weight: 600; 
+            margin-bottom: 12px;
+            letter-spacing: -0.3px;
+        }
+        .photo-summary { 
+            font-size: 15px; 
+            font-style: italic; 
+            opacity: 0.85; 
+            line-height: 1.55;
+            max-width: 320px;
+            margin: 0 auto;
+        }
         
         .nav-dots {
-            position: absolute; bottom: 100px; left: 0; right: 0;
-            display: flex; justify-content: center; gap: 6px;
+            position: absolute; 
+            bottom: 120px; 
+            left: 0; 
+            right: 0;
+            display: flex; 
+            justify-content: center; 
+            gap: 6px;
         }
-        .nav-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.4); }
-        .nav-dot.active { background: #fff; }
+        .nav-dot { 
+            width: 6px; 
+            height: 6px; 
+            border-radius: 50%; 
+            background: rgba(255,255,255,0.35);
+            transition: background 0.2s, transform 0.2s;
+        }
+        .nav-dot.active { 
+            background: #fff;
+            transform: scale(1.2);
+        }
         
-        /* Article View - TikTok style vertical scroll */
+        .modal-swipe-hint {
+            position: absolute;
+            bottom: 155px;
+            left: 0; 
+            right: 0;
+            text-align: center;
+            color: rgba(255,255,255,0.5);
+            font-size: 12px;
+            z-index: 5;
+            pointer-events: none;
+            animation: float 2.5s ease-in-out infinite;
+            opacity: 0;
+            transition: opacity 0.35s ease 0.4s;
+        }
+        .modal.visible .modal-swipe-hint { opacity: 1; }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+        
+        /* Article View */
         .article-view { 
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background: #fff; 
+            background: var(--bg); 
             z-index: 1100;
             overflow-y: auto;
             scroll-snap-type: y mandatory;
             display: none;
             opacity: 0;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.35s ease;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
         }
+        .article-view::-webkit-scrollbar { display: none; }
         .article-view.active { 
             display: block; 
             opacity: 1;
@@ -216,17 +502,16 @@
             display: block;
             opacity: 0;
         }
-        .article-view::-webkit-scrollbar { display: none; }
         
         .article-page {
             min-height: 100vh;
             scroll-snap-align: start;
             display: flex;
             flex-direction: column;
-            background: #fff;
+            background: var(--bg);
             opacity: 0;
             transform: translateY(20px);
-            transition: opacity 0.4s ease 0.2s, transform 0.4s ease 0.2s;
+            transition: opacity 0.45s ease 0.15s, transform 0.45s ease 0.15s;
         }
         .article-view.active .article-page {
             opacity: 1;
@@ -234,118 +519,174 @@
         }
         
         .article-header { 
-            position: sticky; top: 0; background: #fff; padding: 12px 16px; 
-            padding-top: max(12px, env(safe-area-inset-top));
-            border-bottom: 1px solid #eee; 
-            display: flex; align-items: center; 
+            position: sticky; 
+            top: 0; 
+            background: var(--bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: 14px 16px; 
+            padding-top: max(14px, env(safe-area-inset-top));
+            border-bottom: 1px solid var(--border); 
+            display: flex; 
+            align-items: center; 
             z-index: 100;
             opacity: 0;
             transform: translateY(-10px);
-            transition: opacity 0.3s ease 0.3s, transform 0.3s ease 0.3s;
+            transition: opacity 0.35s ease 0.25s, transform 0.35s ease 0.25s;
         }
         .article-view.active .article-header {
             opacity: 1;
             transform: translateY(0);
         }
         
-        .back-btn { font-size: 20px; background: none; border: none; cursor: pointer; padding: 4px; margin-right: 12px; }
-        .nav-indicator { font-size: 13px; color: #999; margin-left: auto; }
+        .back-btn { 
+            font-size: 22px; 
+            background: none; 
+            border: none; 
+            cursor: pointer; 
+            padding: 6px; 
+            margin-right: 12px;
+            color: var(--text);
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+        .back-btn:hover {
+            background: var(--border);
+        }
+        
+        .article-category {
+            font-size: 14px; 
+            font-weight: 500;
+            color: var(--text);
+            text-transform: capitalize;
+        }
+        
+        .nav-indicator { 
+            font-size: 12px; 
+            color: var(--text-subtle); 
+            margin-left: auto;
+            font-weight: 500;
+        }
         
         .article-hero {
             width: 100%;
-            height: 33vh;
-            min-height: 200px;
+            height: 35vh;
+            min-height: 220px;
             position: relative;
             overflow: hidden;
         }
         .article-hero img {
-            width: 100%; height: 100%; object-fit: cover;
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover;
         }
         .article-hero-overlay {
-            position: absolute; bottom: 0; left: 0; right: 0;
-            padding: 60px 20px 20px;
-            background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+            position: absolute; 
+            bottom: 0; 
+            left: 0; 
+            right: 0;
+            padding: 80px 20px 24px;
+            background: linear-gradient(to top, rgba(0,0,0,0.75), transparent);
             color: #fff;
         }
         .article-hero-title {
             font-family: 'Playfair Display', serif;
-            font-size: 22px;
+            font-size: 24px;
             font-weight: 600;
+            letter-spacing: -0.3px;
+            line-height: 1.25;
         }
         
         .article-content-wrapper { 
-            padding: 24px; 
+            padding: 28px 20px; 
             max-width: 600px; 
             margin: 0 auto; 
             width: 100%;
             opacity: 0;
             transform: translateY(15px);
-            transition: opacity 0.4s ease 0.35s, transform 0.4s ease 0.35s;
+            transition: opacity 0.45s ease 0.3s, transform 0.45s ease 0.3s;
         }
         .article-view.active .article-content-wrapper {
             opacity: 1;
             transform: translateY(0);
         }
         
-        .article-headline { font-family: 'Playfair Display', serif; font-size: 24px; line-height: 1.3; margin-bottom: 20px; }
-        .article-body { font-size: 16px; line-height: 1.8; color: #444; }
-        .article-body p { margin-bottom: 16px; }
+        .article-headline { 
+            font-family: 'Playfair Display', serif; 
+            font-size: 26px;
+            font-weight: 600;
+            line-height: 1.3; 
+            margin-bottom: 24px;
+            letter-spacing: -0.3px;
+        }
+        .article-body { 
+            font-size: 17px; 
+            line-height: 1.75; 
+            color: var(--text-muted);
+        }
+        .article-body p { 
+            margin-bottom: 20px; 
+        }
         
         .tips-box { 
-            background: #f5f5f5; 
-            padding: 20px; 
-            border-radius: 12px; 
-            margin-top: 24px;
+            background: var(--bg-card); 
+            padding: 24px; 
+            border-radius: 16px;
+            margin-top: 28px;
+            border: 1px solid var(--border);
             opacity: 0;
             transform: translateY(10px);
-            transition: opacity 0.4s ease 0.45s, transform 0.4s ease 0.45s;
+            transition: opacity 0.45s ease 0.4s, transform 0.45s ease 0.4s;
         }
         .article-view.active .tips-box {
             opacity: 1;
             transform: translateY(0);
         }
         
-        .tips-title { font-size: 12px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
-        .tips-list { list-style: none; }
-        .tips-list li { padding: 8px 0; padding-left: 20px; position: relative; font-size: 15px; color: #555; }
-        .tips-list li::before { content: "•"; position: absolute; left: 0; color: #333; }
+        .tips-title { 
+            font-size: 11px; 
+            font-weight: 600; 
+            color: var(--text-subtle); 
+            text-transform: uppercase; 
+            letter-spacing: 1.5px; 
+            margin-bottom: 16px;
+        }
+        .tips-list { 
+            list-style: none; 
+        }
+        .tips-list li { 
+            padding: 10px 0; 
+            padding-left: 24px; 
+            position: relative; 
+            font-size: 15px; 
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+        .tips-list li::before { 
+            content: "→"; 
+            position: absolute; 
+            left: 0; 
+            color: var(--text-subtle);
+        }
         
         .swipe-hint {
             position: fixed;
-            bottom: 20px;
-            left: 50%; transform: translateX(-50%);
-            background: rgba(0,0,0,0.7);
-            color: #fff;
-            padding: 8px 16px;
-            border-radius: 20px;
+            bottom: 24px;
+            left: 50%; 
+            transform: translateX(-50%);
+            background: var(--text);
+            color: var(--bg);
+            padding: 10px 20px;
+            border-radius: 24px;
             font-size: 12px;
+            font-weight: 500;
             z-index: 1200;
             pointer-events: none;
             opacity: 0;
-            transition: opacity 0.3s ease 0.5s;
+            transition: opacity 0.35s ease 0.5s;
         }
         .article-view.active .swipe-hint {
-            opacity: 1;
-        }
-        
-        .modal-swipe-hint {
-            position: absolute;
-            bottom: 140px;
-            left: 0; right: 0;
-            text-align: center;
-            color: rgba(255,255,255,0.6);
-            font-size: 13px;
-            z-index: 5;
-            pointer-events: none;
-            animation: bounce 2s infinite;
-            opacity: 0;
-            transition: opacity 0.3s ease 0.3s;
-        }
-        .modal.visible .modal-swipe-hint { opacity: 1; }
-        
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
+            opacity: 0.9;
         }
     </style>
 </head>
@@ -361,7 +702,14 @@
         </div>
     </div>
 
-    <div class="grid" id="grid"><div class="loading">Loading...</div></div>
+    <div class="grid" id="grid">
+        <div class="loading">
+            <div class="loading-spinner"></div>
+            Loading mindful moments...
+        </div>
+    </div>
+    
+    <div class="stats" id="stats"></div>
 
     <div class="zoom-overlay" id="zoomOverlay"></div>
     <div class="article-transition-overlay" id="articleTransition"></div>
@@ -369,7 +717,7 @@
     <div class="modal" id="modal">
         <div class="modal-header">
             <button class="close-btn" onclick="closeModal()">×</button>
-            <button class="article-btn" onclick="openArticle()">Read</button>
+            <button class="article-btn" onclick="openArticle()">Read Article</button>
         </div>
         <div class="photo-viewer" id="viewer"></div>
     </div>
@@ -379,40 +727,60 @@
     </div>
 
     <script>
+        // State
         let allPosts = [];
         let filteredPosts = [];
         let displayedPosts = [];
         let currentIndex = 0;
         let articleStartIndex = 0;
-        let postsPerLoad = 20;
+        const postsPerLoad = 20;
         let currentPage = 0;
         let isAnimating = false;
+        let swipeHintDismissed = false;
 
+        // Initialize
         async function init() {
             const grid = document.getElementById('grid');
             try {
-                const res = await fetch('feeds.json?t=' + Date.now());
+                const res = await fetch('feeds.json?v=' + Date.now());
                 if (!res.ok) throw new Error('HTTP ' + res.status);
                 const data = await res.json();
                 allPosts = Object.values(data);
+                
+                // Sort by score (highest first)
+                allPosts.sort((a, b) => (b.score || 0) - (a.score || 0));
                 filteredPosts = [...allPosts];
                 
                 renderBatch();
-                setupInfiniteScroll();
+                updateStats();
             } catch (e) {
                 console.error(e);
-                grid.innerHTML = '<div class="error-msg">Failed to load. <button onclick="init()" style="margin-top:12px;padding:8px 16px;border:none;background:#333;color:#fff;border-radius:20px;cursor:pointer;">Retry</button></div>';
+                grid.innerHTML = `
+                    <div class="error-msg">
+                        Failed to load content
+                        <button class="retry-btn" onclick="init()">Try Again</button>
+                    </div>
+                `;
             }
         }
 
         function filter(category, btn) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             btn.classList.add('active');
-            filteredPosts = category === 'all' ? [...allPosts] : allPosts.filter(p => p.category === category);
+            filteredPosts = category === 'all' 
+                ? [...allPosts] 
+                : allPosts.filter(p => p.category === category);
             currentPage = 0;
             displayedPosts = [];
             document.getElementById('grid').innerHTML = '';
             renderBatch();
+            updateStats();
+        }
+        
+        function updateStats() {
+            const stats = document.getElementById('stats');
+            const count = filteredPosts.length;
+            stats.textContent = `${count} mindful moment${count !== 1 ? 's' : ''}`;
         }
 
         function renderBatch() {
@@ -422,7 +790,7 @@
             const batch = filteredPosts.slice(start, end);
             
             if (batch.length === 0 && currentPage === 0) {
-                grid.innerHTML = '<div class="error-msg">No posts</div>';
+                grid.innerHTML = '<div class="error-msg">No posts found</div>';
                 return;
             }
             
@@ -433,10 +801,12 @@
                 const globalIndex = startIndex + i;
                 return `
                 <div class="item" onclick="openModal(${globalIndex}, event)" data-index="${globalIndex}">
-                    <img data-src="${post.url}" loading="lazy" onerror="this.style.display='none'" class="lazy-img">
+                    <div class="item-img-container">
+                        <img data-src="${post.url}" loading="lazy" alt="${post.title || ''}" class="lazy-img">
+                    </div>
                     <div class="item-info">
-                        <div class="item-author">${post.author || ''}</div>
-                        <div class="item-title">${post.title || ''}</div>
+                        <div class="item-author">${escapeHtml(post.author || '')}</div>
+                        <div class="item-title">${escapeHtml(post.title || '')}</div>
                     </div>
                 </div>
             `}).join('');
@@ -451,17 +821,23 @@
             currentPage++;
             
             if (end < filteredPosts.length) {
-                addSentinel();
+                addLoadMoreSentinel();
             }
         }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
 
-        function addSentinel() {
+        function addLoadMoreSentinel() {
             const existing = document.querySelector('.load-more-sentinel');
             if (existing) existing.remove();
             
             const sentinel = document.createElement('div');
             sentinel.className = 'load-more-sentinel';
-            sentinel.style.cssText = 'height: 20px; grid-column: 1/-1;';
+            sentinel.style.cssText = 'height: 1px; grid-column: 1/-1;';
             document.getElementById('grid').appendChild(sentinel);
             
             const observer = new IntersectionObserver((entries) => {
@@ -471,13 +847,9 @@
                         renderBatch();
                     }
                 });
-            }, { rootMargin: '100px' });
+            }, { rootMargin: '200px' });
             
             observer.observe(sentinel);
-        }
-
-        function setupInfiniteScroll() {
-            observeImages();
         }
 
         function observeImages() {
@@ -485,12 +857,22 @@
                 entries.forEach(entry => {
                     if (entry.isIntersecting) {
                         const img = entry.target;
+                        const container = img.closest('.item-img-container');
+                        
+                        img.onload = () => {
+                            img.classList.add('loaded');
+                            if (container) container.classList.add('loaded');
+                        };
+                        img.onerror = () => {
+                            if (container) container.style.display = 'none';
+                        };
+                        
                         img.src = img.dataset.src;
                         img.classList.remove('lazy-img');
                         imgObserver.unobserve(img);
                     }
                 });
-            }, { rootMargin: '50px' });
+            }, { rootMargin: '100px' });
             
             document.querySelectorAll('.lazy-img').forEach(img => {
                 imgObserver.observe(img);
@@ -506,8 +888,11 @@
             const clickedItem = event ? event.currentTarget : document.querySelector(`.item[data-index="${index}"]`);
             const clickedImg = clickedItem ? clickedItem.querySelector('img') : null;
             
-            const rect = clickedImg ? clickedImg.getBoundingClientRect() : { left: window.innerWidth/2 - 100, top: window.innerHeight/2 - 100, width: 200, height: 200 };
+            const rect = clickedImg 
+                ? clickedImg.getBoundingClientRect() 
+                : { left: window.innerWidth/2 - 100, top: window.innerHeight/2 - 100, width: 200, height: 200 };
             
+            // Create zoom image
             const zoomImg = document.createElement('img');
             zoomImg.className = 'zoom-image';
             zoomImg.src = post.url;
@@ -520,19 +905,14 @@
             const overlay = document.getElementById('zoomOverlay');
             overlay.style.pointerEvents = 'auto';
             
-            const screenW = window.innerWidth;
-            const screenH = window.innerHeight;
-            
-            zoomImg.offsetHeight;
-            
+            // Trigger animation
             requestAnimationFrame(() => {
                 overlay.classList.add('active');
                 zoomImg.classList.add('expanded');
-                
                 zoomImg.style.left = '0px';
                 zoomImg.style.top = '0px';
-                zoomImg.style.width = screenW + 'px';
-                zoomImg.style.height = screenH + 'px';
+                zoomImg.style.width = window.innerWidth + 'px';
+                zoomImg.style.height = window.innerHeight + 'px';
                 zoomImg.style.objectFit = 'contain';
             });
             
@@ -558,12 +938,13 @@
                 });
                 
                 document.body.style.overflow = 'hidden';
-            }, 350);
+            }, 400);
             
+            // Scroll handler
             const viewer = document.getElementById('viewer');
             viewer.onscroll = () => {
                 const newIndex = Math.round(viewer.scrollLeft / viewer.clientWidth);
-                if (newIndex !== currentIndex) {
+                if (newIndex !== currentIndex && newIndex >= 0 && newIndex < displayedPosts.length) {
                     currentIndex = newIndex;
                     updateDots();
                     preloadNearbyImages(newIndex);
@@ -572,7 +953,7 @@
         }
 
         function preloadNearbyImages(centerIndex) {
-            const range = 2;
+            const range = 3;
             for (let i = centerIndex - range; i <= centerIndex + range; i++) {
                 if (i >= 0 && i < displayedPosts.length) {
                     const img = new Image();
@@ -583,15 +964,17 @@
 
         function renderViewer() {
             const viewer = document.getElementById('viewer');
+            const maxDots = 8;
+            
             viewer.innerHTML = displayedPosts.map((post, i) => `
                 <div class="photo-slide" data-index="${i}">
-                    <img src="${post.url}" onerror="this.style.opacity='0.3'">
+                    <img src="${post.url}" alt="${escapeHtml(post.title || '')}">
                     <div class="photo-info">
-                        <div class="photo-title">${post.title || ''}</div>
-                        <div class="photo-summary">${post.summary || ''}</div>
+                        <div class="photo-title">${escapeHtml(post.title || '')}</div>
+                        <div class="photo-summary">${escapeHtml(post.summary || '')}</div>
                     </div>
                     <div class="nav-dots">
-                        ${displayedPosts.slice(0, Math.min(10, displayedPosts.length)).map((_, j) => 
+                        ${displayedPosts.slice(0, Math.min(maxDots, displayedPosts.length)).map((_, j) => 
                             `<div class="nav-dot ${j === i ? 'active' : ''}"></div>`
                         ).join('')}
                     </div>
@@ -601,8 +984,9 @@
         }
 
         function updateDots() {
+            const maxDots = 8;
             document.querySelectorAll('.nav-dot').forEach((dot, i) => {
-                dot.classList.toggle('active', i === currentIndex);
+                dot.classList.toggle('active', i === currentIndex % maxDots);
             });
         }
 
@@ -625,10 +1009,12 @@
             const view = document.getElementById('articleView');
             const post = displayedPosts[currentIndex];
             
-            // Get current image position from modal
+            // Get current image position
             const currentSlide = document.querySelector(`.photo-slide[data-index="${currentIndex}"]`);
             const currentImg = currentSlide ? currentSlide.querySelector('img') : null;
-            const rect = currentImg ? currentImg.getBoundingClientRect() : { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight };
+            const rect = currentImg 
+                ? currentImg.getBoundingClientRect() 
+                : { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight };
             
             // Create transition image
             const transImg = document.createElement('img');
@@ -640,20 +1026,12 @@
             transImg.style.height = rect.height + 'px';
             document.body.appendChild(transImg);
             
-            // Fade out modal
             modal.classList.add('to-article');
-            
-            // Prepare article view
             buildArticleView();
             view.classList.add('preparing');
             
-            // Calculate hero target position (33vh)
-            const heroHeight = Math.max(window.innerHeight * 0.33, 200);
+            const heroHeight = Math.max(window.innerHeight * 0.35, 220);
             
-            // Force reflow
-            transImg.offsetHeight;
-            
-            // Animate transition image to hero position
             requestAnimationFrame(() => {
                 transImg.style.top = '0px';
                 transImg.style.left = '0px';
@@ -661,22 +1039,18 @@
                 transImg.style.height = heroHeight + 'px';
             });
             
-            // Show article view with slide up
             setTimeout(() => {
                 modal.classList.remove('active', 'visible', 'to-article');
                 view.classList.remove('preparing');
                 view.classList.add('active');
                 document.body.style.overflow = 'hidden';
-                
-                // Scroll to current article
                 view.scrollTo({ top: currentIndex * window.innerHeight, behavior: 'auto' });
                 
-                // Remove transition image after animation
                 setTimeout(() => {
                     transImg.remove();
                     isAnimating = false;
-                }, 400);
-            }, 300);
+                }, 450);
+            }, 350);
             
             setupArticleScroll();
         }
@@ -688,29 +1062,37 @@
             
             displayedPosts.forEach((post, i) => {
                 let tipsHtml = '';
-                if (post.article && post.article.tips && post.article.tips.length > 0) {
-                    tipsHtml = '<div class="tips-box"><div class="tips-title">Tips</div><ul class="tips-list">' + 
-                        post.article.tips.map(tip => `<li>${tip}</li>`).join('') + '</ul></div>';
+                if (post.article?.tips?.length > 0) {
+                    tipsHtml = `
+                        <div class="tips-box">
+                            <div class="tips-title">Mindful Tips</div>
+                            <ul class="tips-list">
+                                ${post.article.tips.map(tip => `<li>${escapeHtml(tip)}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
                 }
                 
-                const articleText = post.article ? post.article.content.replace(/\n\n/g, '</p><p>') : post.summary || '';
-                const headline = post.article ? post.article.headline : post.title;
+                const articleText = post.article 
+                    ? post.article.content.replace(/\n\n/g, '</p><p>') 
+                    : post.summary || '';
+                const headline = post.article?.headline || post.title;
                 
                 html += `
                     <div class="article-page" data-index="${i}">
                         <div class="article-header">
                             <button class="back-btn" onclick="closeArticle()">←</button>
-                            <span style="font-size: 16px; font-weight: 500;">${post.category || 'Article'}</span>
+                            <span class="article-category">${escapeHtml(post.category || 'Article')}</span>
                             <span class="nav-indicator">${i + 1} / ${total}</span>
                         </div>
                         <div class="article-hero">
-                            <img src="${post.url}" onerror="this.style.display='none'">
+                            <img src="${post.url}" alt="${escapeHtml(post.title || '')}">
                             <div class="article-hero-overlay">
-                                <div class="article-hero-title">${post.title || ''}</div>
+                                <div class="article-hero-title">${escapeHtml(post.title || '')}</div>
                             </div>
                         </div>
                         <div class="article-content-wrapper">
-                            <div class="article-headline">${headline}</div>
+                            <div class="article-headline">${escapeHtml(headline)}</div>
                             <div class="article-body"><p>${articleText}</p></div>
                             ${tipsHtml}
                         </div>
@@ -730,14 +1112,19 @@
                     currentIndex = newIndex;
                 }
                 
-                if (currentIndex >= displayedPosts.length - 3 && currentPage * postsPerLoad < filteredPosts.length) {
+                // Load more if near end
+                if (currentIndex >= displayedPosts.length - 5 && currentPage * postsPerLoad < filteredPosts.length) {
                     renderMoreForArticleView();
                 }
                 
-                const hint = document.getElementById('swipeHint');
-                if (hint && view.scrollTop > 50) {
-                    hint.style.opacity = '0';
-                    setTimeout(() => hint.remove(), 300);
+                // Dismiss hint
+                if (!swipeHintDismissed && view.scrollTop > 100) {
+                    swipeHintDismissed = true;
+                    const hint = document.getElementById('swipeHint');
+                    if (hint) {
+                        hint.style.opacity = '0';
+                        setTimeout(() => hint.remove(), 350);
+                    }
                 }
             };
         }
@@ -746,6 +1133,7 @@
             const view = document.getElementById('articleView');
             view.classList.remove('active');
             document.body.style.overflow = '';
+            swipeHintDismissed = false;
         }
 
         function renderMoreForArticleView() {
@@ -766,29 +1154,37 @@
             batch.forEach((post, i) => {
                 const globalIndex = startIndex + i;
                 let tipsHtml = '';
-                if (post.article && post.article.tips && post.article.tips.length > 0) {
-                    tipsHtml = '<div class="tips-box"><div class="tips-title">Tips</div><ul class="tips-list">' + 
-                        post.article.tips.map(tip => `<li>${tip}</li>`).join('') + '</ul></div>';
+                if (post.article?.tips?.length > 0) {
+                    tipsHtml = `
+                        <div class="tips-box">
+                            <div class="tips-title">Mindful Tips</div>
+                            <ul class="tips-list">
+                                ${post.article.tips.map(tip => `<li>${escapeHtml(tip)}</li>`).join('')}
+                            </ul>
+                        </div>
+                    `;
                 }
                 
-                const articleText = post.article ? post.article.content.replace(/\n\n/g, '</p><p>') : post.summary || '';
-                const headline = post.article ? post.article.headline : post.title;
+                const articleText = post.article 
+                    ? post.article.content.replace(/\n\n/g, '</p><p>') 
+                    : post.summary || '';
+                const headline = post.article?.headline || post.title;
                 
                 html += `
                     <div class="article-page" data-index="${globalIndex}">
                         <div class="article-header">
                             <button class="back-btn" onclick="closeArticle()">←</button>
-                            <span style="font-size: 16px; font-weight: 500;">${post.category || 'Article'}</span>
+                            <span class="article-category">${escapeHtml(post.category || 'Article')}</span>
                             <span class="nav-indicator">${globalIndex + 1} / ${total}</span>
                         </div>
                         <div class="article-hero">
-                            <img src="${post.url}" onerror="this.style.display='none'">
+                            <img src="${post.url}" alt="${escapeHtml(post.title || '')}">
                             <div class="article-hero-overlay">
-                                <div class="article-hero-title">${post.title || ''}</div>
+                                <div class="article-hero-title">${escapeHtml(post.title || '')}</div>
                             </div>
                         </div>
                         <div class="article-content-wrapper">
-                            <div class="article-headline">${headline}</div>
+                            <div class="article-headline">${escapeHtml(headline)}</div>
                             <div class="article-body"><p>${articleText}</p></div>
                             ${tipsHtml}
                         </div>
@@ -803,6 +1199,7 @@
                 view.insertAdjacentHTML('beforeend', html);
             }
             
+            // Also add to grid
             renderBatchForGrid(batch, startIndex);
         }
 
@@ -812,10 +1209,12 @@
                 const globalIndex = startIndex + i;
                 return `
                 <div class="item" onclick="openModal(${globalIndex}, event)" data-index="${globalIndex}">
-                    <img data-src="${post.url}" loading="lazy" onerror="this.style.display='none'" class="lazy-img">
+                    <div class="item-img-container">
+                        <img data-src="${post.url}" loading="lazy" alt="${escapeHtml(post.title || '')}" class="lazy-img">
+                    </div>
                     <div class="item-info">
-                        <div class="item-author">${post.author || ''}</div>
-                        <div class="item-title">${post.title || ''}</div>
+                        <div class="item-author">${escapeHtml(post.author || '')}</div>
+                        <div class="item-title">${escapeHtml(post.title || '')}</div>
                     </div>
                 </div>
             `}).join('');
@@ -829,24 +1228,25 @@
             observeImages();
         }
 
-        // Touch swipe for modal
-        let startX, startY;
+        // Touch handling for modal
+        let touchStartX, touchStartY;
         const viewer = document.getElementById('viewer');
         
         viewer.addEventListener('touchstart', (e) => {
-            startX = e.touches[0].clientX;
-            startY = e.touches[0].clientY;
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
         }, { passive: true });
         
         viewer.addEventListener('touchend', (e) => {
-            if (!startX || !startY) return;
-            const dx = e.changedTouches[0].clientX - startX;
-            const dy = e.changedTouches[0].clientY - startY;
+            if (!touchStartX || !touchStartY) return;
             
-            // Vertical swipe up to open article
-            if (dy < -80 && Math.abs(dy) > Math.abs(dx)) {
+            const dx = e.changedTouches[0].clientX - touchStartX;
+            const dy = e.changedTouches[0].clientY - touchStartY;
+            
+            // Vertical swipe up → open article
+            if (dy < -80 && Math.abs(dy) > Math.abs(dx) * 1.5) {
                 openArticle();
-                startX = startY = null;
+                touchStartX = touchStartY = null;
                 return;
             }
             
@@ -856,31 +1256,44 @@
                 else if (dx > 0 && currentIndex > 0) currentIndex--;
                 viewer.scrollTo({ left: currentIndex * viewer.clientWidth, behavior: 'smooth' });
                 updateDots();
+                preloadNearbyImages(currentIndex);
             }
-            startX = startY = null;
+            
+            touchStartX = touchStartY = null;
         }, { passive: true });
 
-        // Keyboard
+        // Keyboard navigation
         document.addEventListener('keydown', (e) => {
-            if (document.getElementById('articleView').classList.contains('active')) {
+            const articleView = document.getElementById('articleView');
+            const modal = document.getElementById('modal');
+            
+            if (articleView.classList.contains('active')) {
                 if (e.key === 'Escape') closeArticle();
                 return;
             }
-            if (!document.getElementById('modal').classList.contains('active')) return;
+            
+            if (!modal.classList.contains('active')) return;
             
             const viewer = document.getElementById('viewer');
-            if (e.key === 'Escape') closeModal();
-            else if (e.key === 'ArrowRight' && currentIndex < displayedPosts.length - 1) {
+            if (e.key === 'Escape') {
+                closeModal();
+            } else if (e.key === 'ArrowRight' && currentIndex < displayedPosts.length - 1) {
                 currentIndex++;
                 viewer.scrollTo({ left: currentIndex * viewer.clientWidth, behavior: 'smooth' });
                 updateDots();
+                preloadNearbyImages(currentIndex);
             } else if (e.key === 'ArrowLeft' && currentIndex > 0) {
                 currentIndex--;
                 viewer.scrollTo({ left: currentIndex * viewer.clientWidth, behavior: 'smooth' });
                 updateDots();
+                preloadNearbyImages(currentIndex);
+            } else if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                openArticle();
             }
         });
 
+        // Initialize
         init();
     </script>
 </body>

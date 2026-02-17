@@ -946,15 +946,23 @@
                 document.body.style.overflow = 'hidden';
             }, 400);
             
-            // Scroll handler
+            // Scroll handler for horizontal photo swipe
             const viewer = document.getElementById('viewer');
+            let scrollTimeout;
             viewer.onscroll = () => {
-                const newIndex = Math.round(viewer.scrollLeft / viewer.clientWidth);
-                if (newIndex !== currentIndex && newIndex >= 0 && newIndex < displayedPosts.length) {
-                    currentIndex = newIndex;
-                    updateDots();
-                    preloadNearbyImages(newIndex);
-                }
+                clearTimeout(scrollTimeout);
+                scrollTimeout = setTimeout(() => {
+                    const slideWidth = viewer.clientWidth;
+                    if (slideWidth > 0) {
+                        const newIndex = Math.round(viewer.scrollLeft / slideWidth);
+                        if (newIndex !== currentIndex && newIndex >= 0 && newIndex < displayedPosts.length) {
+                            currentIndex = newIndex;
+                            updateDots();
+                            preloadNearbyImages(newIndex);
+                            console.log('Photo viewer scrolled to:', currentIndex);
+                        }
+                    }
+                }, 50);
             };
         }
 
@@ -1009,6 +1017,17 @@
         function openArticle() {
             if (isAnimating) return;
             isAnimating = true;
+            
+            // Recalculate current index from viewer scroll position
+            const viewer = document.getElementById('viewer');
+            if (viewer && viewer.clientWidth > 0) {
+                const calculatedIndex = Math.round(viewer.scrollLeft / viewer.clientWidth);
+                if (calculatedIndex >= 0 && calculatedIndex < displayedPosts.length) {
+                    currentIndex = calculatedIndex;
+                }
+            }
+            
+            console.log('Opening article at index:', currentIndex);
             articleStartIndex = currentIndex;
             
             const modal = document.getElementById('modal');
@@ -1050,7 +1069,15 @@
                 view.classList.remove('preparing');
                 view.classList.add('active');
                 document.body.style.overflow = 'hidden';
-                view.scrollTo({ top: currentIndex * window.innerHeight, behavior: 'auto' });
+                
+                // Ensure DOM is ready before scrolling
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        const targetScroll = currentIndex * window.innerHeight;
+                        view.scrollTop = targetScroll;
+                        console.log('Scrolling to article:', currentIndex, 'scroll:', targetScroll);
+                    });
+                });
                 
                 setTimeout(() => {
                     transImg.remove();

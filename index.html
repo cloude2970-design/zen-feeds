@@ -162,11 +162,11 @@
         .item-img-container {
             position: relative;
             width: 100%;
-            padding-bottom: 133.33%; /* 3:4 aspect ratio */
             overflow: hidden;
             background: var(--skeleton);
             background-size: 200% 100%;
             animation: shimmer 1.5s infinite;
+            min-height: 100px;
         }
         
         @keyframes shimmer {
@@ -177,15 +177,12 @@
         .item-img-container.loaded {
             animation: none;
             background: transparent;
+            min-height: auto;
         }
         
         .item img { 
-            position: absolute;
-            top: 0;
-            left: 0;
             width: 100%; 
-            height: 100%;
-            object-fit: cover;
+            height: auto;
             display: block;
             opacity: 0;
             transition: opacity 0.4s ease;
@@ -1116,9 +1113,17 @@
             const view = document.getElementById('articleView');
             
             view.onscroll = () => {
-                const newIndex = Math.round(view.scrollTop / window.innerHeight);
+                const pageHeight = window.innerHeight;
+                const newIndex = Math.round(view.scrollTop / pageHeight);
                 if (newIndex !== currentIndex && newIndex >= 0 && newIndex < displayedPosts.length) {
                     currentIndex = newIndex;
+                    // Update nav indicator
+                    const indicators = document.querySelectorAll('.nav-indicator');
+                    indicators.forEach((ind, i) => {
+                        if (i === currentIndex) {
+                            ind.textContent = `${currentIndex + 1} / ${displayedPosts.length}`;
+                        }
+                    });
                 }
                 
                 // Load more if near end
@@ -1143,6 +1148,13 @@
             view.classList.remove('active');
             document.body.style.overflow = '';
             swipeHintDismissed = false;
+            
+            // Sync photo viewer to current article position
+            const viewer = document.getElementById('viewer');
+            if (viewer && currentIndex >= 0) {
+                viewer.scrollLeft = currentIndex * viewer.clientWidth;
+                updateDots();
+            }
         }
 
         function renderMoreForArticleView() {

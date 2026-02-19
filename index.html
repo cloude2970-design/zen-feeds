@@ -852,8 +852,8 @@
                     const dx = touchEndX - touchStartX;
                     const index = parseInt(item.dataset.index);
                     
-                    // Swipe up → open article directly
-                    if (dy > 60 && Math.abs(dy) > Math.abs(dx) * 1.5 && touchDuration < 300) {
+                    // Swipe up → open article (requires deliberate flick: 120px+ in 250ms)
+                    if (dy > 120 && Math.abs(dy) > Math.abs(dx) * 2 && touchDuration < 250) {
                         e.preventDefault();
                         openModalToArticle(index);
                         return;

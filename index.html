@@ -162,7 +162,6 @@
         .item-img-container {
             position: relative;
             width: 100%;
-            padding-bottom: 133.33%; /* 3:4 aspect ratio */
             overflow: hidden;
             background: var(--skeleton);
             background-size: 200% 100%;
@@ -180,12 +179,9 @@
         }
         
         .item img { 
-            position: absolute;
-            top: 0;
-            left: 0;
             width: 100%; 
-            height: 100%;
-            object-fit: cover;
+            height: auto;
+            object-fit: contain;
             display: block;
             opacity: 0;
             transition: opacity 0.4s ease;
@@ -809,7 +805,7 @@
             const html = batch.map((post, i) => {
                 const globalIndex = startIndex + i;
                 return `
-                <div class="item" onclick="openModal(${globalIndex}, event)" data-index="${globalIndex}">
+                <div class="item" data-index="${globalIndex}">
                     <div class="item-img-container">
                         <img data-src="${post.url}" loading="lazy" alt="${post.title || ''}" class="lazy-img">
                     </div>
@@ -827,11 +823,69 @@
             }
             
             observeImages();
+            setupGridTouchHandlers();
             currentPage++;
             
             if (end < filteredPosts.length) {
                 addLoadMoreSentinel();
             }
+        }
+
+        function setupGridTouchHandlers() {
+            document.querySelectorAll('.item').forEach(item => {
+                let touchStartY = 0;
+                let touchStartX = 0;
+                let touchStartTime = 0;
+                
+                item.addEventListener('touchstart', (e) => {
+                    touchStartY = e.touches[0].clientY;
+                    touchStartX = e.touches[0].clientX;
+                    touchStartTime = Date.now();
+                }, { passive: true });
+                
+                item.addEventListener('touchend', (e) => {
+                    const touchEndY = e.changedTouches[0].clientY;
+                    const touchEndX = e.changedTouches[0].clientX;
+                    const touchDuration = Date.now() - touchStartTime;
+                    
+                    const dy = touchStartY - touchEndY;
+                    const dx = touchEndX - touchStartX;
+                    const index = parseInt(item.dataset.index);
+                    
+                    // Swipe up → open article directly
+                    if (dy > 60 && Math.abs(dy) > Math.abs(dx) * 1.5 && touchDuration < 300) {
+                        e.preventDefault();
+                        openModalToArticle(index);
+                        return;
+                    }
+                    
+                    // Tap (no significant swipe)
+                    if (Math.abs(dy) < 10 && Math.abs(dx) < 10 && touchDuration < 300) {
+                        openModal(index, { currentTarget: item });
+                    }
+                }, { passive: false });
+            });
+        }
+        
+        function openModalToArticle(index) {
+            // Open modal first
+            currentIndex = index;
+            const modal = document.getElementById('modal');
+            const viewer = document.getElementById('viewer');
+            
+            preloadNearbyImages(index);
+            renderViewer();
+            
+            modal.classList.add('active', 'visible');
+            document.body.style.overflow = 'hidden';
+            
+            requestAnimationFrame(() => {
+                viewer.scrollLeft = index * viewer.clientWidth;
+                // Short delay then open article for smooth transition
+                setTimeout(() => {
+                    openArticle();
+                }, 150);
+            });
         }
         
         function escapeHtml(text) {
@@ -1259,7 +1313,7 @@
             const html = batch.map((post, i) => {
                 const globalIndex = startIndex + i;
                 return `
-                <div class="item" onclick="openModal(${globalIndex}, event)" data-index="${globalIndex}">
+                <div class="item" data-index="${globalIndex}">
                     <div class="item-img-container">
                         <img data-src="${post.url}" loading="lazy" alt="${escapeHtml(post.title || '')}" class="lazy-img">
                     </div>
@@ -1277,6 +1331,7 @@
                 grid.insertAdjacentHTML('beforeend', html);
             }
             observeImages();
+            setupGridTouchHandlers();
         }
 
         // Touch handling for modal

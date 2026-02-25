@@ -829,6 +829,41 @@
             observeImages();
         }
 
+        // Touch detection for grid items - prevent scroll from triggering click
+        let gridTouchStart = null;
+        let gridScrolling = false;
+        
+        document.getElementById('grid').addEventListener('touchstart', (e) => {
+            gridTouchStart = { x: e.touches[0].clientX, y: e.touches[0].clientY, time: Date.now() };
+            gridScrolling = false;
+        }, { passive: true });
+        
+        document.getElementById('grid').addEventListener('touchmove', (e) => {
+            if (!gridTouchStart) return;
+            const dx = Math.abs(e.touches[0].clientX - gridTouchStart.x);
+            const dy = Math.abs(e.touches[0].clientY - gridTouchStart.y);
+            if (dx > 10 || dy > 10) {
+                gridScrolling = true;
+            }
+        }, { passive: true });
+        
+        // Override openModal to check if scrolling
+        const originalOpenModal = openModal;
+        openModal = function(index, event) {
+            if (gridScrolling) {
+                gridScrolling = false;
+                gridTouchStart = null;
+                return;
+            }
+            // Also ignore if touch duration > 300ms (likely a scroll attempt)
+            if (gridTouchStart && (Date.now() - gridTouchStart.time) > 300) {
+                gridTouchStart = null;
+                return;
+            }
+            gridTouchStart = null;
+            originalOpenModal(index, event);
+        };
+        
         // Touch swipe for modal
         let startX, startY;
         const viewer = document.getElementById('viewer');
